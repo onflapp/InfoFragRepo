@@ -97,6 +97,14 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
   res.redirect('/webapp/capture.html');
 });
 
+app.get('/api/resource*filepath', (req, res) => {
+  let name = req.params.filepath.join('/');
+  let path = paths.join(BASE, name);
+  path = paths.resolve(path);
+
+  res.sendFile(path);
+});
+
 app.get('/webapp*filepath', (req, res) => {
   let name = req.params.filepath.join('/');
 

@@ -27,7 +27,6 @@ class Repository {
 
     return new Promise((done, error) => {
       trans.transformInput(input).then((rv) => {
-console.log('111111111111111111');
         let dir = paths.dirname(input);
 
         if (rv && rv.preview) {

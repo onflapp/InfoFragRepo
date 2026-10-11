@@ -12,6 +12,10 @@ class SearchIndex {
     this._prepare();
   }
 
+  _fileToFragmentPath(path) {
+    return path.substr(this.filePath.length-1);
+  }
+
   _prepare() {
     let sql = '';
     sql += 'CREATE VIRTUAL TABLE IF NOT EXISTS TextIndex USING fts5(toi UNINDEXED, path UNINDEXED, timestamp, bucket, body)';
@@ -53,11 +57,14 @@ class SearchIndex {
   async _extractInfo(path, query) {
     const tools = require('./TextTools');
 
-    let freg = new Fragment(path);
-    let info = await freg.readInformation();
+    let frag = new Fragment(path);
+    if (!frag.isReadable()) return null;
+
+    let info = await frag.readInformation();
+    info.path = this._fileToFragmentPath(path);
 
     if (query) {
-      let body = await freg.readContent();
+      let body = await frag.readContent();
       info.matches = tools.extract_context(this._makeHeader(info), query);
 
       if (body) {
@@ -169,13 +176,15 @@ class SearchIndex {
 
       if (rv.length == 0) done([]);
 
+      let rn = 0;
       for (let i = 0; i < rv.length; i++) {
         let row = rv[i];
-        let freg = new Fragment(row.path);
 
         this._extractInfo(row.path, query).then((info) => {
-          results.push(info);
-          if (results.length == rv.length) done(results);
+          if (info) results.push(info);
+
+          rn++;
+          if (rn == rv.length) done(results);
         });
       }
     });

@@ -4,9 +4,15 @@ const paths = require('node:path');
 
 class Fragment {
   constructor(filePath) {
+    this.readable = false;
     this.filePath = filePath;
-    if (!fs.lstatSync(this.filePath).isDirectory()) {
-      this.filePath = paths.dirname(this.filePath);
+    try {
+      if (!fs.lstatSync(this.filePath).isDirectory()) {
+        this.filePath = paths.dirname(this.filePath);
+      }
+      this.readable = true;
+    }
+    catch(ex) {
     }
   }
 
@@ -34,8 +40,24 @@ class Fragment {
     }
   }
 
+  isReadable() {
+    return this.readable;
+  }
+
   fragmentPath() {
     return this.filePath;
+  }
+
+  async _findFile(name) {
+    let path = this._fragmentToFilePath(name);
+    path = paths.resolve(path);
+    try {
+      await fs.access(path, fs.constants.R_OK);
+      return name;
+    } 
+    catch (ex) {
+      return null;
+    }
   }
 
   async mdate() {
@@ -96,6 +118,14 @@ class Fragment {
     if (rec.resource) {
       rec.resourceURL = this._makeResourceURL(rec.resource);
     }
+
+    let thumbnail = await this._findFile('thumbnail.png');
+    let preview = await this._findFile('preview.pdf');
+
+    if (!preview) preview = await this._findFile('preview.png');
+
+    if (thumbnail) rec.thumbnail = thumbnail;
+    if (preview) rec.preview = preview;
 
     rec.path = this.filePath;
     return rec;

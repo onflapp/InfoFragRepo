@@ -4,27 +4,30 @@
 <meta charset="utf-8">
 <title>InfoFragRepo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef1f4; --pane:#fafbfc; --pane2:#f3f5f7; --line:#dde2e8; --ink:#1b2430; --muted:#5d6978;
-  --accent:#1f5eff; --accent-ink:#fff; --sel:#e3ebff; --hl:#ffe58a;
-  --pdf:#c8372d; --docx:#2a5db0; --xlsx:#1d7a4a; --pptx:#b5601a;
+  --bg:#e8e8ea; --pane:#ffffff; --pane2:#f4f4f6; --line:#dcdce0; --ink:#1d1d1f; --muted:#6e6e73;
+  --accent:#007aff; --accent-ink:#fff; --sel:rgba(0,122,255,.12); --hl:#ffe58a;
+  --side:#ececef; --bar:#f6f6f8; --gsel:rgba(60,60,67,.14); --ctl:#fff;
+  --pdf:#ff3b30; --docx:#007aff; --xlsx:#248a3d; --pptx:#e07000;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0f141a; --pane:#161c24; --pane2:#1b222b; --line:#2a333f; --ink:#e6ebf1; --muted:#98a4b3;
-    --accent:#6b94ff; --accent-ink:#0b1220; --sel:#1f2c4d; --hl:#6b5a14;
+    --bg:#161617; --pane:#1e1e20; --pane2:#28282b; --line:#38383b; --ink:#f5f5f7; --muted:#9a9aa1;
+    --accent:#0a84ff; --accent-ink:#fff; --sel:rgba(10,132,255,.24); --hl:#6b5a14;
+    --side:#2a2a2d; --bar:#2f2f32; --gsel:rgba(235,235,245,.14); --ctl:#3a3a3d;
     --pdf:#ff7a6e; --docx:#7da5ee; --xlsx:#58c58b; --pptx:#f0a060;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0f141a; --pane:#161c24; --pane2:#1b222b; --line:#2a333f; --ink:#e6ebf1; --muted:#98a4b3;
-  --accent:#6b94ff; --accent-ink:#0b1220; --sel:#1f2c4d; --hl:#6b5a14;
+  --bg:#161617; --pane:#1e1e20; --pane2:#28282b; --line:#38383b; --ink:#f5f5f7; --muted:#9a9aa1;
+  --accent:#0a84ff; --accent-ink:#fff; --sel:rgba(10,132,255,.24); --hl:#6b5a14;
+  --side:#2a2a2d; --bar:#2f2f32; --gsel:rgba(235,235,245,.14); --ctl:#3a3a3d;
   --pdf:#ff7a6e; --docx:#7da5ee; --xlsx:#58c58b; --pptx:#f0a060;
+}
+img {
+    pointer-events: none;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 *,*::before,*::after{box-sizing:inherit}
@@ -48,9 +51,14 @@ mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
 .top .sp{flex:1}
 .iconbtn{border:1px solid var(--line);background:var(--pane);border-radius:8px;padding:6px 10px}
 .iconbtn:hover{background:var(--pane2)}
+a.iconbtn{display:inline-block;color:var(--ink);text-decoration:none;white-space:nowrap;font-weight:500}
 
-.cols{display:grid;grid-template-columns:230px minmax(300px,380px) 1fr;min-height:0}
-.col{background:var(--pane);border-right:1px solid var(--line);min-height:0;display:flex;flex-direction:column}
+.cols{display:grid;grid-template-columns:var(--w1,230px) var(--w2,380px) minmax(0,1fr) var(--w3,300px);min-height:0}
+.col{background:var(--pane);border-right:1px solid var(--line);min-height:0;display:flex;flex-direction:column;position:relative}
+.grip{position:absolute;top:0;bottom:0;right:-4px;width:9px;cursor:col-resize;z-index:5;touch-action:none}
+.grip::after{content:"";position:absolute;top:0;bottom:0;left:4px;width:2px;background:transparent;transition:background .15s}
+.grip:hover::after,.grip:focus-visible::after,.grip.drag::after{background:var(--accent)}
+body.resizing{cursor:col-resize;user-select:none}
 .col:last-child{border-right:0;background:var(--bg)}
 .colhead{padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .colhead h2{margin:0;font-size:13px;font-weight:600;color:var(--muted)}
@@ -70,7 +78,13 @@ mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
 .seg{display:flex;gap:2px;margin:0 14px 10px;padding:2px;background:var(--pane2);border:1px solid var(--line);border-radius:8px}
 .seg button{flex:1;border:0;background:none;padding:5px 8px;border-radius:6px;font-weight:500;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--pane);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
-.cal{padding:0 14px 12px}
+.calwrap{border-top:1px solid var(--line);margin-top:6px}
+.cal{padding:0 14px 14px}
+.calhead b{text-align:center}
+.cgrid{gap:2px}
+.cd{font-size:12px}
+.calfoot{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px}
+.calfoot button{border:0;background:none;color:var(--accent);padding:0;font-size:12.5px;font-weight:600}
 .calhead{display:flex;align-items:center;gap:6px;margin-bottom:8px}
 .calhead b{flex:1;font-size:14px}
 .calhead button{border:1px solid var(--line);background:var(--pane);border-radius:6px;padding:3px 9px}
@@ -79,18 +93,35 @@ mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
 .cw{font-size:11.5px;color:var(--muted);text-align:center;padding:2px 0}
 .cd{aspect-ratio:1/.8;border:1px solid transparent;background:none;border-radius:6px;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-variant-numeric:tabular-nums;color:var(--muted)}
 .cd.has{background:var(--sel);color:var(--ink);font-weight:600}
-.cd i{font-style:normal;font-size:10.5px;color:var(--accent);font-weight:600}
+.cd i{display:none}
 .cd.today{border-color:var(--accent)}
 .cd[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .cd[aria-pressed="true"] i{color:var(--accent-ink)}
 .calhint{margin-top:10px;font-size:12.5px;color:var(--muted)}
 .calhint button{border:0;background:none;color:var(--accent);padding:0;font-weight:600;text-decoration:underline}
 .docs{list-style:none;margin:0;padding:0}
+.docs.gridv{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;padding:2px 14px 14px}
+.docs.gridv li{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--pane)}
+.docs.gridv li:has(.doc[aria-current="true"]){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.docs.gridv li.empty{grid-column:1/-1;border:0;background:none}
+.gridv .doc{display:flex;flex-direction:column;gap:0;padding:0;height:100%;position:relative}
+.gridv .doc[aria-current="true"]{box-shadow:none;background:var(--sel)}
+.gridv .doc .ft{width:100%;height:auto;aspect-ratio:4/3;border:0;border-bottom:1px solid var(--line);border-radius:0;place-items:center;font-size:13px;padding:0}
+.gridv .doc>span:nth-child(2){padding:8px 10px 10px;min-width:0}
+.gridv .doc .t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px}
+.gridv .doc .sn{display:none}
+.gridv .doc .star{position:absolute;top:6px;right:6px;background:var(--pane);border-radius:999px;padding:0 6px;line-height:20px}
+.gridv .doc .star:empty{display:none}
 .docs li{border-top:1px solid var(--line)}
 .doc{width:100%;display:grid;grid-template-columns:38px 1fr auto;gap:10px;border:0;background:none;text-align:left;padding:11px 14px}
 .doc:hover{background:var(--pane2)}
 .doc[aria-current="true"]{background:var(--sel);box-shadow:inset 3px 0 0 var(--accent)}
-.ft{width:38px;height:44px;border-radius:4px;border:1.5px solid currentColor;display:grid;place-items:end center;font-size:9px;font-weight:700;padding-bottom:4px;letter-spacing:.02em;background:var(--pane);color:var(--muted)}
+.ft{width:38px;height:44px;border-radius:4px;border:1.5px solid currentColor;display:grid;place-items:end center;font-size:9px;font-weight:700;padding-bottom:4px;letter-spacing:.02em;background:var(--pane);color:var(--muted);position:relative;overflow:hidden;flex:none}
+.ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;background:var(--pane)}
+.pv{width:100%;height:560px;border:1px solid var(--line);border-radius:6px;background:var(--pane)}
+.pvimg{display:block;max-width:100%;border:1px solid var(--line);border-radius:6px;background:var(--pane)}
+.pvlink{margin-top:6px;font-size:12.5px}
+.pvlink a{color:var(--accent)}
 .ft.pdf{color:var(--pdf)}.ft.docx{color:var(--docx)}.ft.xlsx{color:var(--xlsx)}.ft.pptx{color:var(--pptx)}.ft.eml{color:var(--accent)}
 .doc .t{font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .doc .s{display:block;color:var(--muted);font-size:12.5px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -127,9 +158,10 @@ mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
 
-@media (max-width:1100px){.cols{grid-template-columns:200px minmax(260px,330px) 1fr}.detail{padding:20px}}
+@media (max-width:1200px){.cols{grid-template-columns:var(--w1,200px) var(--w2,330px) minmax(0,1fr)}.c4{display:none}.c3{border-right:0}.detail{padding:20px}}
 @media (max-width:820px){
   .cols{grid-template-columns:1fr}
+  .grip{display:none}
   .col{display:none;border-right:0}
   .cols[data-view="groups"] .c1,.cols[data-view="list"] .c2,.cols[data-view="detail"] .c3{display:flex}
   .back{display:block}
@@ -137,6 +169,110 @@ mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
   .detail{padding:8px 16px 40px}
 }
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
+/* macOS look: system font, translucent sidebar, toolbar, native-style controls */
+body{font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.scroll{scrollbar-width:thin;scrollbar-color:rgba(120,120,128,.45) transparent}
+.scroll::-webkit-scrollbar{width:11px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:rgba(120,120,128,.45);border-radius:10px;border:3px solid transparent;background-clip:content-box}
+.top{background:var(--bar);padding:8px 14px;gap:12px;-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+.brand{font-size:15px;font-weight:700}
+.brand i{border-radius:5px;background:linear-gradient(#4aa3ff,#007aff)}
+.search input{padding:5px 28px 5px 30px;border:0;background:rgba(118,118,128,.14);border-radius:7px;font-size:13px}
+.search input:focus{outline:none;background:var(--pane);box-shadow:0 0 0 3.5px rgba(0,122,255,.4)}
+.search svg{left:9px}
+.btn,.iconbtn{background:var(--ctl);border:1px solid rgba(0,0,0,.14);border-radius:6px;padding:3px 12px;font-size:13px;font-weight:400;color:var(--ink);box-shadow:0 .5px 1px rgba(0,0,0,.15)}
+.btn:hover,.iconbtn:hover{background:var(--ctl);filter:brightness(.97)}
+.btn:active,.iconbtn:active{filter:brightness(.9)}
+.btn.primary{background:linear-gradient(#3b9cff,#007aff);border-color:#0a6fe0;color:#fff}
+.btn.danger{color:#ff3b30}
+.c1{background:var(--side);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
+.col:last-child{background:var(--pane)}
+.colhead h2{font-size:11px;font-weight:600}
+.c2 .colhead h2#listTitle{font-size:15px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c2 .colhead h2#listCount{font-weight:400;font-size:12px;white-space:nowrap}
+.groups button{padding:5px 8px;border-radius:7px;font-size:13px}
+.groups button:hover{background:transparent}
+.groups button[aria-current="true"]{background:var(--gsel);font-weight:500}
+.groups .dot{width:9px;height:9px;border-radius:50%}
+.seg{background:rgba(118,118,128,.14);border:0;border-radius:8px;padding:2px}
+.seg button{border-radius:6px;font-size:12px;padding:3px 8px;color:var(--ink);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--ctl);color:var(--ink);box-shadow:0 .5px 2px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.04)}
+.tools select{background-color:var(--ctl);border:1px solid rgba(0,0,0,.14);border-radius:6px;box-shadow:0 .5px 1px rgba(0,0,0,.12);padding:3px 6px;font-size:12px}
+.docs li{border-top:0;padding:0 8px}
+.docs li+li{position:relative}
+.docs li+li::before{content:"";position:absolute;left:62px;right:14px;top:0;height:1px;background:var(--line)}
+.docs li:has(.doc[aria-current="true"])::before,.docs li:has(.doc[aria-current="true"])+li::before{opacity:0}
+.docs.gridv li{padding:0}
+.docs.gridv li::before{display:none}
+.doc{border-radius:8px;padding:8px}
+.doc:hover{background:var(--pane2)}
+.docs:not(.gridv) .doc[aria-current="true"],.docs:not(.gridv) .doc[aria-current="true"]:hover{background:var(--accent);color:#fff;box-shadow:none}
+.docs:not(.gridv) .doc[aria-current="true"] .t,.docs:not(.gridv) .doc[aria-current="true"] .star{color:#fff}
+.docs:not(.gridv) .doc[aria-current="true"] .s,.docs:not(.gridv) .doc[aria-current="true"] .sn{color:rgba(255,255,255,.82)}
+.docs:not(.gridv) .doc[aria-current="true"] mark{color:#1d1d1f}
+.ft{border-radius:5px;border-width:1px}
+.cgrid{gap:2px}
+.cd{aspect-ratio:1;border-radius:50%;position:relative;font-size:12px;color:var(--ink);padding:0}
+.cd:not(.has){color:var(--muted)}
+.cd.has{background:transparent;font-weight:600}
+.cd.has::after{content:"";position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.cd.today{background:#ff3b30;color:#fff;border:0}
+.cd.today.has::after,.cd[aria-pressed="true"]::after{background:#fff}
+.cd[aria-pressed="true"]{background:var(--accent);color:#fff}
+.calhead b{font-size:13px}
+.calhead button{border:0;background:none;color:var(--accent);font-size:16px;line-height:1;padding:2px 8px}
+.calhead button:hover{background:none;filter:brightness(.8)}
+.dh h1{font:700 22px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",system-ui,sans-serif;letter-spacing:-.015em}
+.sec h3{font-size:12px}
+.meta{border:0;border-radius:10px;background:var(--line)}
+.meta div{background:var(--pane2)}
+.note{font:400 14px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;background:var(--pane2);border:0;border-radius:10px}
+.kv,.matches{background:var(--pane2);border:0;border-radius:10px}
+.matches li{border-top-color:var(--line)}
+.pv,.pvimg{border-radius:10px}
+
+/* Fourth column: related items */
+.grip.l{left:-4px;right:auto}
+.col.c4{background:var(--pane2)}
+.c4 .colhead h2{font-size:13px;font-weight:700;color:var(--ink)}
+.relpanel{padding:0 14px 14px}
+.relpanel .relhead{justify-content:flex-start;margin-bottom:10px}
+.c4 .rels{background:var(--pane)}
+@media (min-width:1201px){.relsec{display:none}}
+
+/* Related by time */
+.relhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.relhead h3{margin:0}
+.relhead label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.gapsel{border:1px solid rgba(0,0,0,.14);background-color:var(--ctl);border-radius:6px;padding:2px 6px;font-size:12px}
+.relnote{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+.rels{display:flex;flex-direction:column;gap:2px;background:var(--pane2);border-radius:10px;padding:4px}
+.rel{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;border:0;background:none;text-align:left;padding:6px 8px;border-radius:7px;width:100%}
+.rel:hover{background:var(--sel)}
+.rel .ft{width:28px;height:34px;font-size:8px;padding-bottom:3px}
+.rel .t{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rel .s{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Group headers in the document list */
+.tools{flex-wrap:wrap}
+.tools select{flex:1 1 88px}
+.docs li.gh{display:flex;justify-content:space-between;padding:10px 14px 4px;font-size:11px;font-weight:600;color:var(--muted);position:sticky;top:0;z-index:2;background:var(--pane)}
+.docs li.gh::before,.docs li.gh+li::before{display:none}
+.docs.gridv li.gh{grid-column:1/-1;position:static;border:0;border-radius:0;padding:8px 2px 0;background:none}
+
+/* Calendar scales with the width of the groups column */
+.c1{container-type:inline-size}
+.cal{padding:0 clamp(8px,4.5cqw,18px) 14px}
+.cgrid{grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(1px,.8cqw,4px)}
+.cd{font-size:clamp(10px,4.6cqw,17px)}
+.cw{font-size:clamp(9px,3.6cqw,13px)}
+.calhead b{font-size:clamp(12px,5cqw,16px)}
+.calhead button{font-size:clamp(14px,5.5cqw,20px)}
+.cd.has::after{width:clamp(3px,1.6cqw,6px);height:clamp(3px,1.6cqw,6px);bottom:clamp(1px,1cqw,5px)}
+.calfoot button,.calhint{font-size:clamp(11px,3.4cqw,14px)}
+.toast{background:rgba(44,44,46,.9);color:#fff;border-radius:10px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
 </style>
 </head>
 <body>
@@ -148,32 +284,41 @@ mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
       <input id="q" type="search" placeholder="Search titles and document contents" aria-label="Search documents" autocomplete="off">
       <button class="clear" id="clear" aria-label="Clear search">✕</button>
     </div>
-    <a class="iconbtn" href="/webapp/capture.html">Capture</a>
+    <a class="iconbtn" id="capture" href="/webapp/capture.html">Capture</a>
     <div class="sp"></div>
     <button class="iconbtn" id="theme" aria-label="Toggle dark mode">Theme</button>
   </header>
 
   <main class="cols" id="cols" data-view="list">
     <nav class="col c1" aria-label="Groups">
+      <div class="grip" data-grip="1" role="separator" aria-orientation="vertical" aria-label="Resize groups column" aria-valuemin="160" aria-valuemax="420" tabindex="0"></div>
       <div class="colhead"><h2>Groups</h2></div>
-      <div class="scroll"><ul class="groups" id="groups"></ul></div>
+      <div class="scroll"><ul class="groups" id="groups"></ul><div class="calwrap"><div class="colhead"><h2>Calendar</h2></div><div id="cal"></div></div></div>
     </nav>
     <section class="col c2" aria-label="Documents">
+      <div class="grip" data-grip="2" role="separator" aria-orientation="vertical" aria-label="Resize documents column" aria-valuemin="260" aria-valuemax="700" tabindex="0"></div>
       <button class="back" data-back="groups">‹ Groups</button>
       <div class="colhead"><h2 id="listTitle">All documents</h2><h2 id="listCount"></h2></div>
-      <div class="seg" role="group" aria-label="View"><button data-mode="list" aria-pressed="true">List</button><button data-mode="cal" aria-pressed="false">Calendar</button></div>
+      <div class="seg" role="group" aria-label="View"><button data-mode="list" aria-pressed="true">List</button><button data-mode="grid" aria-pressed="false">Grid</button></div>
       <div class="tools">
         <select id="type" aria-label="File type"></select>
+        <select id="by" aria-label="Group by"><option value="none">No grouping</option><option value="type">By type</option><option value="date">By date</option><option value="cluster">By time cluster</option></select>
+        <select id="gap" aria-label="Time window" hidden><option value="15">Within 15 min</option><option value="30">Within 30 min</option><option value="60">Within 1 hour</option><option value="180">Within 3 hours</option><option value="720">Within 12 hours</option><option value="1440">Within 1 day</option></select>
         <select id="sort" aria-label="Sort by">
           <option value="recent">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A–Z</option>
         </select>
       </div>
-      <div class="scroll"><div id="cal" hidden></div><ul class="docs" id="docs"></ul></div>
+      <div class="scroll"><ul class="docs" id="docs"></ul></div>
     </section>
     <article class="col c3" aria-label="Document details">
       <button class="back" data-back="list">‹ Documents</button>
       <div class="scroll" id="detail"></div>
     </article>
+    <aside class="col c4" aria-label="Related items">
+      <div class="grip l" data-grip="3" role="separator" aria-orientation="vertical" aria-label="Resize related items column" aria-valuemin="220" aria-valuemax="560" tabindex="0"></div>
+      <div class="colhead"><h2>Related items</h2></div>
+      <div class="scroll" id="related"></div>
+    </aside>
   </main>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -189,24 +334,35 @@ const CLS={pdf:"pdf",doc:"docx",docx:"docx",xls:"xlsx",xlsx:"xlsx",ppt:"pptx",pp
 let DOCS=[],GROUPS=[],RESULTS=null;
 const STARS=new Set(),REMOVED=new Set();
 let searchTimer,searchCtl,searchSeq=0,searchWarned=false,RESULTS_G="";
-const st={g:"all",q:"",type:"all",sort:"recent",sel:null,loading:false,mode:"list",month:null,day:null};
+const st={g:"all",q:"",type:"all",sort:"recent",by:"none",gap:60,sel:null,loading:false,mode:"list",month:null,day:null};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const grp=n=>GROUPS.find(g=>g.id===n)||{id:n,name:n,color:"var(--muted)"};
 const dateOf=ts=>{const d=new Date(ts);return isNaN(d)?null:d};
 const fmtDate=ts=>{const d=dateOf(ts);return d?d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"No date"};
 const fmtDateTime=ts=>{const d=dateOf(ts);return d?d.toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"No date"};
-const badge=d=>`<span class="ft ${CLS[d.ext]||""}">${esc(d.ext.slice(0,4).toUpperCase())}</span>`;
+// Thumbnails and previews load from GET /api/resource/<document path>/<file name>
+const resUrl=(d,name)=>"/api/resource/"+d.path.split("/").filter(Boolean).map(encodeURIComponent).join("/")+"/"+encodeURIComponent(name);
+const badge=d=>`<span class="ft ${CLS[d.ext]||""}">${esc(d.ext.slice(0,4).toUpperCase())}${d.thumb&&d.path?`<img src="${esc(resUrl(d,d.thumb))}" alt="" loading="lazy" onerror="this.remove()">`:""}</span>`;
+function previewHtml(d){
+  const name=d.preview||d.thumb;
+  if(!d.path||!name)return "";
+  const url=resUrl(d,name),isPdf=/\.pdf$/i.test(name);
+  const media=isPdf
+    ?`<iframe class="pv" src="${esc(url)}" title="Preview of ${esc(d.title)}" loading="lazy"></iframe>`
+    :`<img class="pvimg" src="${esc(url)}" alt="Preview of ${esc(d.title)}" loading="lazy" onerror="this.closest('.sec').remove()">`;
+  return `<div class="sec"><h3>Preview</h3>${media}<div class="pvlink"><a href="${esc(url)}" target="_blank" rel="noopener">Open preview in a new tab</a></div></div>`;
+}
 
 function normalize(raw){
   return raw.map((r,i)=>{
     let file=r.resource||"";
     try{file=decodeURIComponent(file)}catch(e){}
     const m=/\.([A-Za-z0-9]{1,5})$/.exec(file);
-    const id=r.resourceURL||((r.path||"")+"/"+(r.resource||i));
+    const id=r.path||r.resourceURL||String(r.resource||i);
     return {id,title:r.title||file||"Untitled",file,ext:m?m[1].toLowerCase():"file",group:r.group||"Ungrouped",
       ts:r.timestamp||"",comments:r.comments||"",url:r.resourceURL||"",path:r.path||"",
-      matches:Array.isArray(r.matches)?r.matches.map(String):[],star:STARS.has(id)};
+      thumb:r.thumbnail||"",preview:r.preview||"",matches:Array.isArray(r.matches)?r.matches.map(String):[],star:STARS.has(id)};
   }).filter(d=>!REMOVED.has(d.id));
 }
 function hl(text){
@@ -301,12 +457,88 @@ function renderCal(all){
   for(let n=1;n<=len;n++){
     const k=y+"-"+pad(m+1)+"-"+pad(n),c=counts[k]||0,t=k===today?" today":"";
     inMonth+=c;
-    cells+=c?`<button class="cd has${t}" data-day="${k}" aria-pressed="${st.day===k}" aria-label="${n} ${esc(label)}: ${c} ${c===1?"document":"documents"}"><span>${n}</span><i>${c}</i></button>`
+    cells+=c?`<button class="cd has${t}" data-day="${k}" title="${c} ${c===1?"document":"documents"}" aria-pressed="${st.day===k}" aria-label="${n} ${esc(label)}: ${c} ${c===1?"document":"documents"}"><span>${n}</span><i>${c}</i></button>`
             :`<span class="cd${t}"><span>${n}</span></span>`;
   }
   const hint=!inMonth&&dated.length?`<div class="calhint">No documents in ${esc(label)}. <button data-jump="${esc(dated[0].ts)}">Jump to the newest one</button></div>`:"";
-  $("cal").innerHTML=`<div class="cal"><div class="calhead"><button data-nav="-1" aria-label="Previous month">‹</button><b>${esc(label)}</b><button data-nav="today">Today</button><button data-nav="1" aria-label="Next month">›</button></div>
-    <div class="cgrid">${["Mo","Tu","We","Th","Fr","Sa","Su"].map(w=>`<span class="cw">${w}</span>`).join("")}${cells}</div>${hint}</div>`;
+  $("cal").innerHTML=`<div class="cal"><div class="calhead"><button data-nav="-1" aria-label="Previous month">‹</button><b>${esc(label)}</b><button data-nav="1" aria-label="Next month">›</button></div>
+    <div class="cgrid">${["Mo","Tu","We","Th","Fr","Sa","Su"].map(w=>`<span class="cw">${w}</span>`).join("")}${cells}</div>${hint}<div class="calfoot"><button data-nav="today">Today</button>${st.day?'<button data-clear="1">Clear date filter</button>':""}</div></div>`;
+}
+// Grouping of the document list: by file type, or by date (Today, Yesterday, Previous 7 days, ..., then months)
+// Time clustering: documents are chained into one cluster while neighbouring timestamps are less than st.gap minutes apart
+const GAPS=[[15,"15 minutes"],[30,"30 minutes"],[60,"1 hour"],[180,"3 hours"],[720,"12 hours"],[1440,"1 day"]];
+let clusterCache={key:"",map:new Map()};
+function clusters(){
+  const key=st.gap+"|"+DOCS.length+"|"+(DOCS[0]?DOCS[0].id:"");
+  if(clusterCache.key===key)return clusterCache.map;
+  const dated=DOCS.filter(d=>dateOf(d.ts)).sort((a,b)=>dateOf(a.ts)-dateOf(b.ts));
+  const map=new Map(),limit=st.gap*60000;
+  let cur=null;
+  dated.forEach(d=>{
+    const t=+dateOf(d.ts);
+    if(!cur||t-cur.end>=limit)cur={docs:[],start:t,end:t};
+    cur.docs.push(d);cur.end=t;map.set(d.id,cur);
+  });
+  clusterCache={key,map};
+  return map;
+}
+function clusterLabel(c){
+  const a=new Date(c.start),b=new Date(c.end);
+  const day=x=>x.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+  const tm=x=>x.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+  if(a.toDateString()===b.toDateString())return day(a)+" \u00b7 "+tm(a)+(tm(a)!==tm(b)?"\u2013"+tm(b):"");
+  return day(a)+" "+tm(a)+" \u2013 "+day(b)+" "+tm(b);
+}
+function clusterBucket(d){
+  if(!dateOf(d.ts))return {rank:9e6,label:"No date"};
+  const c=clusters().get(d.id);
+  if(!c||c.docs.length<2)return {rank:8e6,label:"Not clustered"};
+  return {rank:-c.start,label:clusterLabel(c)};
+}
+function offsetText(ms){
+  const m=Math.round(Math.abs(ms)/60000);
+  const t=m<60?m+" min":m<1440?(Math.round(m/6)/10)+" h":(Math.round(m/144)/10)+" d";
+  return ms<0?t+" earlier":t+" later";
+}
+function relatedHtml(d,panel){
+  const label=(GAPS.find(g=>g[0]===st.gap)||[0,st.gap+" minutes"])[1];
+  const sel=`<label>Window <select class="gapsel" data-gapsel aria-label="Time window">${GAPS.map(g=>`<option value="${g[0]}"${g[0]===st.gap?" selected":""}>${g[1]}</option>`).join("")}</select></label>`;
+  const t0=dateOf(d.ts);
+  const c=t0?clusters().get(d.id):null;
+  const others=c?c.docs.filter(x=>x.id!==d.id):[];
+  let body;
+  if(!t0)body=`<p class="relnote">This document has no timestamp, so it can't be related by time.</p>`;
+  else if(!others.length)body=`<p class="relnote">No other documents within ${label} of this one.</p>`;
+  else body=`<p class="relnote">${others.length+1} documents chained by gaps shorter than ${label}: ${esc(clusterLabel(c))}</p><div class="rels">${others.map(x=>`<button class="rel" data-rel="${esc(x.id)}">${badge(x)}<span><span class="t">${hl(x.title)}</span><span class="s">${esc(x.group)} \u00b7 ${fmtDateTime(x.ts)} \u00b7 ${offsetText(+dateOf(x.ts)-+t0)}</span></span></button>`).join("")}</div>`;
+  return panel?`<div class="relpanel"><div class="relhead">${sel}</div>${body}</div>`:`<div class="sec relsec"><div class="relhead"><h3>Related by time</h3>${sel}</div>${body}</div>`;
+}
+function dateBucket(d){
+  const x=dateOf(d.ts);
+  if(!x)return {rank:9e6,label:"No date"};
+  const n=new Date(),a=new Date(n.getFullYear(),n.getMonth(),n.getDate()),b=new Date(x.getFullYear(),x.getMonth(),x.getDate());
+  const diff=Math.round((a-b)/864e5);
+  if(diff<0)return {rank:-1,label:"Upcoming"};
+  if(diff===0)return {rank:0,label:"Today"};
+  if(diff===1)return {rank:1,label:"Yesterday"};
+  if(diff<=7)return {rank:2,label:"Previous 7 days"};
+  if(diff<=30)return {rank:3,label:"Previous 30 days"};
+  return {rank:100+(30000-(x.getFullYear()*12+x.getMonth())),label:x.toLocaleDateString("en-GB",{month:"long",year:"numeric"})};
+}
+function groupDocs(r){
+  if(st.by==="none")return [{label:"",docs:r}];
+  const m=new Map();
+  r.forEach(d=>{
+    const b=st.by==="type"?{rank:0,label:d.ext==="file"?"Other":d.ext.toUpperCase()}:st.by==="cluster"?clusterBucket(d):dateBucket(d);
+    if(!m.has(b.label))m.set(b.label,{label:b.label,rank:b.rank,docs:[]});
+    m.get(b.label).docs.push(d);
+  });
+  let g=[...m.values()];
+  if(st.by==="type")g.sort((a,b)=>a.label.localeCompare(b.label));
+  else{
+    g.sort((a,b)=>a.rank-b.rank);
+    if(st.sort==="oldest"){const nd=g.filter(x=>x.rank>=8e6);g=g.filter(x=>x.rank<8e6).reverse().concat(nd)}
+  }
+  return g;
 }
 function renderList(){
   let r=visible(true);
@@ -315,15 +547,16 @@ function renderList(){
   $("listTitle").textContent=st.g==="all"?"All documents":st.g==="\u0000starred"?"Starred":st.g;
   $("listCount").textContent=st.loading?"Searching…":r.length+(r.length===1?" document":" documents");
   const all=r;
-  $("cal").hidden=st.mode!=="cal";
+  $("docs").classList.toggle("gridv",st.mode==="grid");
+  $("gap").hidden=st.by!=="cluster";$("gap").value=String(st.gap);
   document.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===st.mode)));
-  if(st.mode==="cal"){
-    renderCal(all);
-    const y=st.month.getFullYear(),m=st.month.getMonth();
-    r=r.filter(d=>{const x=dateOf(d.ts);return x&&x.getFullYear()===y&&x.getMonth()===m&&(!st.day||docDay(d)===st.day)});
+  renderCal(all);
+  if(st.day){
+    r=r.filter(d=>docDay(d)===st.day);
+    $("listTitle").textContent+=" · "+fmtDate(st.day+"T12:00:00");
     $("listCount").textContent=st.loading?"Searching…":r.length+(r.length===1?" document":" documents");
     if(!r.length&&all.length){
-      $("docs").innerHTML=`<li class="empty"><b>No documents ${st.day?"on this day":"in this month"}</b>Use the arrows to browse other months.</li>`;
+      $("docs").innerHTML=`<li class="empty"><b>No documents on this day</b>Pick another day, or clear the date filter.</li>`;
       return;
     }
   }
@@ -332,14 +565,20 @@ function renderList(){
       ${st.q||st.g!=="all"||st.type!=="all"?'<br><button id="reset">Clear search and filters</button>':""}</li>`;
     return;
   }
-  $("docs").innerHTML=r.map(d=>`<li><button class="doc" data-id="${esc(d.id)}" aria-current="${st.sel===d.id}">
+  const item=d=>`<li><button class="doc" data-id="${esc(d.id)}" aria-current="${st.sel===d.id}">
     ${badge(d)}
     <span><span class="t">${hl(d.title)}</span>
       <span class="s">${hl(d.group)} · ${fmtDate(d.ts)}</span>
       <span class="sn">${hl(snippet(d))}</span></span>
-    <span class="star" aria-label="${d.star?"Starred":""}">${d.star?"★":""}</span></button></li>`).join("");
+    <span class="star" aria-label="${d.star?"Starred":""}">${d.star?"★":""}</span></button></li>`;
+  $("docs").innerHTML=groupDocs(r).map(g=>(g.label?`<li class="gh"><span>${esc(g.label)}</span><span>${g.docs.length}</span></li>`:"")+g.docs.map(item).join("")).join("");
+}
+function renderRelated(){
+  const d=findDoc(st.sel);
+  $("related").innerHTML=d?relatedHtml(d,true):'<div class="none"><div>Related items appear here when you select a document.</div></div>';
 }
 function renderDetail(){
+  renderRelated();
   const d=findDoc(st.sel);
   if(!d){$("detail").innerHTML='<div class="none"><div><b>Select a document</b><br>Its details show up here.</div></div>';return}
   $("detail").innerHTML=`<div class="detail">
@@ -356,10 +595,12 @@ function renderDetail(){
       <div><dt>File type</dt><dd>${esc(d.ext.toUpperCase())}</dd></div>
     </dl>
     ${matchesHtml(d)}
+    ${relatedHtml(d)}
+    ${previewHtml(d)}
     ${d.comments?`<div class="sec"><h3>Comments</h3><div class="note">${hl(d.comments)}</div></div>`:""}
     <div class="sec"><h3>File</h3><dl class="kv">
       <dt>Name</dt><dd>${hl(d.file)}</dd>
-      <dt>Folder</dt><dd>${hl(d.path||"–")}</dd>
+      <dt>Path</dt><dd>${hl(d.path||"–")}</dd>
       <dt>Location</dt><dd>${esc(d.url||"–")}</dd></dl></div>
   </div>`;
 }
@@ -370,15 +611,27 @@ $("groups").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if
 $("docs").addEventListener("click",e=>{
   if(e.target.id==="reset"){st.q="";st.type="all";st.g="all";$("q").value="";runSearch();return}
   const b=e.target.closest("[data-id]");if(!b)return;
-  st.sel=b.dataset.id;renderList();renderDetail();setView("detail");$("detail").scrollTop=0});
+  st.sel=b.dataset.id;
+  document.querySelectorAll("#docs .doc").forEach(x=>x.setAttribute("aria-current",String(x===b)));
+  renderDetail();setView("detail");$("detail").scrollTop=0});
 $("docs").addEventListener("keydown",e=>{
   if(e.key!=="ArrowDown"&&e.key!=="ArrowUp")return;
   const items=[...document.querySelectorAll(".doc")],i=items.indexOf(document.activeElement);if(i<0)return;
   e.preventDefault();(items[i+(e.key==="ArrowDown"?1:-1)]||items[i]).focus()});
 $("detail").addEventListener("click",e=>{
+  const r=e.target.closest("[data-rel]");
+  if(r){
+    st.sel=r.dataset.rel;
+    document.querySelectorAll("#docs .doc").forEach(x=>x.setAttribute("aria-current",String(x.dataset.id===st.sel)));
+    const cur=document.querySelector('#docs .doc[aria-current="true"]');if(cur)cur.scrollIntoView({block:"nearest"});
+    renderDetail();$("detail").scrollTop=0;return;
+  }
   const a=e.target.closest("[data-act]");if(!a)return;
   const d=findDoc(st.sel);if(!d)return;
-  if(a.dataset.act==="star"){if(STARS.has(d.id))STARS.delete(d.id);else STARS.add(d.id);[...DOCS,...(RESULTS||[])].forEach(x=>{if(x.id===d.id)x.star=STARS.has(d.id)});renderAll();toast(d.star?"Added to Starred":"Removed from Starred")}
+  if(a.dataset.act==="star"){if(STARS.has(d.id))STARS.delete(d.id);else STARS.add(d.id);[...DOCS,...(RESULTS||[])].forEach(x=>{if(x.id===d.id)x.star=STARS.has(d.id)});document.querySelectorAll("#docs .doc").forEach(x=>{if(x.dataset.id===d.id){const s=x.querySelector(".star");s.textContent=d.star?"\u2605":"";s.setAttribute("aria-label",d.star?"Starred":"")}});
+    a.textContent=d.star?"\u2605 Starred":"\u2606 Star";renderGroups();
+    if(st.g==="\u0000starred")renderList();
+    toast(d.star?"Added to Starred":"Removed from Starred")}
   if(a.dataset.act==="delete"){REMOVED.add(d.id);DOCS=DOCS.filter(x=>x.id!==d.id);if(RESULTS)RESULTS=RESULTS.filter(x=>x.id!==d.id);st.sel=null;renderAll();setView("list");toast("Removed from this list")}
   if(a.dataset.act==="copy"){
     (navigator.clipboard?navigator.clipboard.writeText(d.url):Promise.reject()).then(()=>toast("File location copied"),()=>toast("Copy isn't available here. Select the location text instead.",3000));
@@ -389,10 +642,23 @@ $("q").addEventListener("input",e=>{st.q=e.target.value;renderAll();runSearch()}
 $("clear").addEventListener("click",()=>{st.q="";$("q").value="";runSearch();$("q").focus()});
 $("type").addEventListener("change",e=>{st.type=e.target.value;renderAll()});
 $("sort").addEventListener("change",e=>{st.sort=e.target.value;renderList()});
-document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>{st.mode=b.dataset.mode;st.day=null;renderList()}));
+$("by").addEventListener("change",e=>{st.by=e.target.value;renderList()});
+function setGap(v){st.gap=+v;renderList();renderDetail()}
+$("gap").addEventListener("change",e=>setGap(e.target.value));
+$("detail").addEventListener("change",e=>{if(e.target.matches("[data-gapsel]"))setGap(e.target.value)});
+$("related").addEventListener("click",e=>{
+  const r=e.target.closest("[data-rel]");if(!r)return;
+  st.sel=r.dataset.rel;
+  document.querySelectorAll("#docs .doc").forEach(x=>x.setAttribute("aria-current",String(x.dataset.id===st.sel)));
+  const cur=document.querySelector('#docs .doc[aria-current="true"]');if(cur)cur.scrollIntoView({block:"nearest"});
+  renderDetail();$("detail").scrollTop=0;$("related").scrollTop=0;
+});
+$("related").addEventListener("change",e=>{if(e.target.matches("[data-gapsel]"))setGap(e.target.value)});
+document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>{st.mode=b.dataset.mode;renderList()}));
 $("cal").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
-  if(b.dataset.day)st.day=st.day===b.dataset.day?null:b.dataset.day;
+  if(b.dataset.day){st.day=st.day===b.dataset.day?null:b.dataset.day;if(st.day)setView("list")}
+  else if(b.dataset.clear)st.day=null;
   else if(b.dataset.nav){
     const t=new Date(),y=st.month.getFullYear(),m=st.month.getMonth();
     st.month=b.dataset.nav==="today"?new Date(t.getFullYear(),t.getMonth(),1):new Date(y,m+(+b.dataset.nav),1);
@@ -406,6 +672,49 @@ document.addEventListener("keydown",e=>{if(e.key==="/"&&!["INPUT","SELECT"].incl
 $("theme").addEventListener("click",()=>{
   const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
   r.dataset.theme=dark?"light":"dark"});
+
+// Resizable columns: drag a divider, use the arrow keys when it is focused, or double-click to reset.
+const cols=$("cols"),LIM={1:[160,420],2:[260,700],3:[220,560]},DEF={1:230,2:380,3:300},MINDETAIL=360,W={1:230,2:380,3:300},wide=()=>matchMedia("(min-width:1201px)").matches;
+let custom=false;
+function clampW(k,v){
+  const others=W[1]+W[2]+(wide()?W[3]:0)-W[k];
+  const max=Math.min(LIM[k][1],cols.clientWidth-others-MINDETAIL);
+  return Math.round(Math.max(LIM[k][0],Math.min(v,Math.max(LIM[k][0],max))));
+}
+function applyW(){
+  cols.style.setProperty("--w1",W[1]+"px");cols.style.setProperty("--w2",W[2]+"px");cols.style.setProperty("--w3",W[3]+"px");
+  document.querySelectorAll("[data-grip]").forEach(g=>g.setAttribute("aria-valuenow",W[g.dataset.grip]));
+}
+function saveW(){try{localStorage.setItem("docket-cols",JSON.stringify(W))}catch(e){}}
+function ensureCustom(){
+  if(custom)return;
+  W[1]=document.querySelector(".c1").offsetWidth;W[2]=document.querySelector(".c2").offsetWidth;if(wide())W[3]=document.querySelector(".c4").offsetWidth;custom=true;
+}
+try{
+  const s=JSON.parse(localStorage.getItem("docket-cols")||"null");
+  if(s&&s[1]&&s[2]){W[1]=s[1];W[2]=s[2];if(s[3])W[3]=s[3];custom=true;W[1]=clampW(1,W[1]);W[2]=clampW(2,W[2]);W[3]=clampW(3,W[3]);applyW()}
+}catch(e){}
+document.querySelectorAll("[data-grip]").forEach(g=>{
+  const k=+g.dataset.grip;
+  g.addEventListener("pointerdown",e=>{
+    e.preventDefault();ensureCustom();
+    g.setPointerCapture(e.pointerId);g.classList.add("drag");document.body.classList.add("resizing");
+  });
+  g.addEventListener("pointermove",e=>{
+    if(!g.hasPointerCapture(e.pointerId))return;
+    const x=e.clientX-cols.getBoundingClientRect().left;
+    W[k]=clampW(k,k===1?x:k===2?x-W[1]:cols.clientWidth-x);applyW();
+  });
+  const end=()=>{if(g.classList.contains("drag")){g.classList.remove("drag");document.body.classList.remove("resizing");saveW()}};
+  g.addEventListener("pointerup",end);g.addEventListener("pointercancel",end);
+  g.addEventListener("dblclick",()=>{ensureCustom();W[k]=clampW(k,DEF[k]);applyW();saveW()});
+  g.addEventListener("keydown",e=>{
+    if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;
+    e.preventDefault();ensureCustom();
+    W[k]=clampW(k,W[k]+((e.key==="ArrowRight")===(k!==3)?16:-16));applyW();saveW();
+  });
+});
+addEventListener("resize",()=>{if(custom){W[1]=clampW(1,W[1]);W[2]=clampW(2,W[2]);W[3]=clampW(3,W[3]);applyW()}});
 
 async function getJSON(url){
   const r=await fetch(url,{headers:{Accept:"application/json"}});
