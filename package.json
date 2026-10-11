@@ -1,0 +1,33 @@
+{
+  "name": "InFragRep",
+  "version": "0.1",
+  "description": "Information Fragments Repository",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "@firecrawl/anydoc": "^0.2.4",
+    "@opendocsg/pdf2md": "^0.3.4",
+    "chrono-node": "^2.10.2",
+    "express": "^5.2.1",
+    "franc": "^6.2.0",
+    "fs-extra": "^11.4.1",
+    "gray-matter": "^4.0.3",
+    "mailparser": "^3.9.38",
+    "markitdown-node": "^1.5.2",
+    "multer": "^2.4.0",
+    "node-ical": "^0.27.3",
+    "node-tesseract-ocr": "^2.2.1",
+    "remove-markdown": "^0.8.0",
+    "sentence-splitter": "^5.0.1",
+    "shelljs": "^0.10.0",
+    "sqlstring-sqlite": "^0.1.1",
+    "stopword": "^3.1.5",
+    "turndown": "^7.2.4",
+    "vcard-parser": "^1.0.0",
+    "wink-nlp": "^2.4.0"
+  },
+  "license": "MIT"
+}

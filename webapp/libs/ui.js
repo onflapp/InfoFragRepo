@@ -1,0 +1,693 @@
+window.__exec_id = {};
+
+function is_parent_of_element(par, el) {
+  let p = par;
+  while (p) {
+    if (el == p) return true;
+    p = p.parentElement;
+  }
+  return false;
+}
+
+function exec_clear(name) {
+  var id = window.__exec_id[name];
+  clearInterval(id);
+}
+
+function exec_once(name, tout, func) {
+  var id = window.__exec_id[name];
+  clearInterval(id);
+  
+  if (func) {
+    window.__exec_id[name] = setTimeout(function() {
+      func();
+      delete window.__exec_id.name;
+
+    }, tout);
+  }
+}
+
+function dialogPath(type, path_ref, cb) {
+  let w = window.open(path_ref);
+  let b = window.__dialogBC;
+
+  if (!b) {
+    b = new BroadcastChannel('global_dialog_ui');
+    b.addEventListener('message', function(evt) {
+      if (cb) cb(evt.data);
+    });
+    window.__dialogBC = b;
+  }
+}
+
+function closeDialogPath(val) {
+  let b = window.__dialogBC;
+  if (!b) {
+    let b = new BroadcastChannel('global_dialog_ui');
+    window.__dialogBC = b;
+  }
+
+  window.__dialogBC.postMessage(val, window.location);
+  window.close();
+}
+
+function popupPath(type, path_ref, cb) {
+  //saveFocus();
+
+  let el = document.querySelector('#ui_popup');
+  if (el) {
+    console.log('ui_popup exists');
+    return;
+  }
+
+  el = document.createElement('iframe');
+  el.id = 'ui_popup';
+  document.body.append(el);
+
+  let bg = document.createElement('div');
+  let onclick = function(evt) {
+    if (document.body.classList.contains('mode_popup-visible')) {
+      delete el.removeCB;
+      el.classList.remove('visible');
+      document.body.classList.remove('mode_popup-visible');
+      bg.removeEventListener('click', onclick);
+      bg.remove();
+      el.remove();
+      if (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+      }
+      if (el['popupCB']) {
+        el.popupCB();
+      }
+    }
+  };
+
+  let fel = document.activeElement;
+  if (fel) fel.blur();
+
+  bg.addEventListener('click', onclick);
+  bg.id = 'ui_popup-background';
+  document.body.append(bg);
+
+  el.removeCB = onclick;
+
+  el.src = path_ref;
+  el.popupCB = function(val) {
+    delete el.removeCB;
+    bg.removeEventListener('click', onclick);
+    bg.remove();
+    if (val) Utils.flushResourceCache();
+    cb(val);
+  };
+
+  setTimeout(function() {
+    el.classList.add('visible');
+    document.body.classList.add('mode_popup-visible');
+  },50);
+}
+
+function cancelPopupPath() {
+  let el = document.querySelector('#ui_popup');
+  if (el && el.removeCB) {
+    el.removeCB();
+  }
+}
+
+function closePopupPath(val) {
+  if (window.top != window) {
+    window.top.postMessage(val, window.location);
+  }
+  else if (window.opener != window) {
+    window.opener.postMessage(val, window.location);
+  }
+}
+
+function getDataProperty(el, name) {
+  let val = $(el).data(name);
+  if (val) return val;
+
+  val = $(el).parents('[data-'+name+']').data(name);
+  return val;
+}
+
+function submitFormAsync(form, cb) {
+  let info = handler.parseFormElement(form);
+  let data = info.formData;
+  let path = info.formPath;
+
+  if (path.indexOf('#') == -1) path = '#'+path; //force this to be local path
+
+  delete data[':forward'];
+  let xhr = new XMLHttpRequest();
+  xhr.open('POST', path);
+  xhr.onreadystatechange = function() {
+    if (cb) cb(data);
+  };
+  xhr.send(data);
+}
+
+function submitDataAsync(data, url, cb) {
+  let xhr = new XMLHttpRequest();
+  xhr.open('POST', url);
+  xhr.onreadystatechange = function (rv) {
+    if (cb) {
+      if (xhr.readyState == 4) cb(xhr.responseText);
+    }
+  };
+  xhr.send(data);
+}
+
+function triggerAction(cl) {
+  setTimeout(function() {
+    var el = document.querySelector(cl);
+    if (el) el.click();
+  },50);
+}
+
+function toggleFilterMode(cl) {
+  var ctx = handler.getRootContext();
+  var path = '/config';
+  ctx.resolveResource(path).then(function(res) {
+    var m = '';
+    if (res) m = res._['filter_mode'];
+    if (!m) m = '';
+
+    m = m.replace(new RegExp('\\b'+cl+'\\b'), '').trim();
+
+    if (document.body.classList.contains(cl)) {
+      document.body.classList.remove(cl);
+    }
+    else {
+      document.body.classList.add(cl);
+      m += ' '+cl;
+    }
+    ctx.storeResource(path, {filter_mode:m}).then(function() {
+    });
+  });
+}
+
+function clearHighlightMode() {
+  sessionStorage.removeItem('__LAST_HIGHLIGHT_MODE');
+}
+
+function saveListState(name) {
+  let ls = [];
+  let items = document.querySelectorAll('#'+name+' li.collapsed');
+  for (let i = 0; i < items.length; i++) {
+    let ref = items[i].dataset['item_ref'];
+    if (ref) ls.push(ref);
+  }
+
+  let v = {
+    items:ls
+  };
+
+  localStorage.setItem('__LAST_LIST_STATE_'+name, JSON.stringify(v));
+}
+
+function restoreListState(name) {
+  let v = JSON.parse(localStorage.getItem('__LAST_LIST_STATE_'+name));
+
+  if (!v) return;
+
+  let ls = v.items;
+  let items = document.querySelectorAll('#'+name+' li');
+  for (let i = 0; i < items.length; i++) {
+    let it = items[i];
+    let ref = it.dataset['item_ref'];
+    if (ref && ls.includes(ref) && it.querySelectorAll('.selected').length == 0) {
+      it.classList.add('collapsed');
+    }
+  }
+}
+
+function saveHighlightMode(list) {
+  let ls = [];
+  let items = document.querySelectorAll(list);
+  for (let i = 0; i < items.length; i++) {
+    let id = items[i].id;
+    if (id) ls.push(id);
+  }
+
+  let v = {
+    ids:ls,
+    element:list,
+    scroll:document.scrollingElement.scrollTop,
+    height:document.scrollingElement.clientHeight,
+    location:window.location.toString()
+  };
+
+  sessionStorage.setItem('__LAST_HIGHLIGHT_MODE', JSON.stringify(v));
+}
+
+function restoreHighlightMode() {
+  if (parent != window) return;
+  let v = JSON.parse(sessionStorage.getItem('__LAST_HIGHLIGHT_MODE'));
+  let u = window.location.toString();
+
+  if (!v) return;
+
+  if (v.location == u && v.element) {
+    let items = document.querySelectorAll(v.element);
+    for (let i = 0; i < items.length; i++) {
+      let el = items[i];
+      let id = el.id;
+      if (id) {
+        if (v.ids.indexOf(id) == -1) {
+          el.classList.add('highlighted');
+          el.scrollIntoViewIfNeeded();
+          setTimeout(function() {
+            el.classList.remove('highlighted');
+          }, 1000);
+        }
+      }
+    }
+  }
+
+  sessionStorage.removeItem('__LAST_HIGHLIGHT_MODE');
+  window.dispatchEvent(new Event('resize'));
+}
+
+function clearMode(name) {
+  sessionStorage.removeItem(`__LAST_MODE_${name}`);
+}
+
+function saveMode(name, any) {
+  let i = $(`.mode_${name}`).attr('id');
+  let l = window.location.toString();
+  let v = {
+    element:i,
+    scroll:document.scrollingElement.scrollTop,
+    height:document.scrollingElement.clientHeight,
+    location:(any ? '*' : l)
+  };
+
+  sessionStorage.setItem(`__LAST_MODE_${name}`, JSON.stringify(v));
+}
+
+function restoreMode(name, reset) {
+  if (parent != window) return;
+  let cl = `mode_${name}`;
+  let v = JSON.parse(sessionStorage.getItem(`__LAST_MODE_${name}`));
+  let u = window.location.toString();
+
+  if (!v) return;
+
+  if (v.location == u || v.location == '*') { //only when the location is the same
+    let $el = $('#'+v.element);
+    if ($el.length) {
+      $el.addClass(cl);
+      document.body.classList.add(name);
+      //$el.get(0).scrollIntoViewIfNeeded();
+      console.log($el.get(0));
+      console.log('scroll into view');
+      requestAnimationFrame(function() {
+        if (document.scrollingElement.clientHeight == v.height) {
+          document.scrollingElement.scrollTop = v.scroll;
+          $el.get(0).scrollIntoViewIfNeeded();
+        }
+        else {
+          $el.get(0).scrollIntoView();//{ behavior: "smooth"});
+        }
+      });
+    }
+    else {
+      document.body.classList.add(cl);
+      document.body.classList.add(name);
+    }
+  }
+
+  if (reset) sessionStorage.removeItem(`__LAST_MODE_${name}`);
+  window.dispatchEvent(new Event('resize'));
+}
+
+function saveCurrentContentPath() {
+  let v = R3E.context.getCurrentResourcePath();
+  sessionStorage.setItem('__CURRENT_CONTENT_PATH', v);
+}
+
+function saveCurrentScrollView(list) {
+  let el = document.querySelector(list);
+  if (el) {
+    let st = el.scrollTop + 100;
+    let ch = el.clientHeight;
+    let sh = el.scrollHeight;
+    let sd = sh - ch;
+
+    if (sd > 0 && st > 0) {
+      let n = st / sd;
+      let v = {
+        scroll:n
+      };
+
+      sessionStorage.setItem('__LAST_SCROLL_VIEW', JSON.stringify(v));
+      return;
+    }
+  }
+  sessionStorage.removeItem('__LAST_SCROLL_VIEW');
+}
+
+function restoreCurrentScrollView(list) {
+  let el = document.querySelector(list);
+  let v = JSON.parse(sessionStorage.getItem('__LAST_SCROLL_VIEW'));
+  if (v && el) {
+    if (v.scroll > 0) {
+      let ch = el.clientHeight;
+      let sh = el.scrollHeight;
+      let sd = sh - ch;
+      let n = (sd * v.scroll);
+
+      //el.scrollTop = n;
+      //console.log('restore:' + n);
+      el.scrollTo({top: n, behavior: 'smooth'});
+    }
+    sessionStorage.removeItem('__LAST_SCROLL_VIEW');
+  }
+}
+
+function formChanges(form) {
+  if (!form) return 0;
+  if (!form.elements) return 0;
+
+  let changes = 0;
+  for (var i = 0; i < form.elements.length; i++) {
+    var it = form.elements[i];
+    if (it.tagName == 'INPUT' && it.getAttribute('value') != it.value) changes++;
+  }
+  return changes;
+}
+
+$(function () {
+  window.addEventListener('message', function(evt) {
+    let path_ref = evt.source.location.toString();
+    if (window.popupPathCB && window.popupPathCB[path_ref]) {
+      Utils.flushResourceCache();
+      document.body.classList.remove('mode_popup-visible');
+      setTimeout(function() {
+        window.popupPathCB[path_ref](evt.data);
+        delete window.popupPathCB[path_ref];
+        evt.source.close();
+      },0);
+    }
+    else {
+      setTimeout(function() {
+        let el = evt.source.frameElement;
+        if (el && el['popupCB']) {
+          document.body.classList.remove('mode_popup-visible');
+          el.popupCB(evt.data);
+          delete el['popupCB'];
+          el.remove();
+        }
+      },0);
+    }
+  });
+
+/*
+ * data-mode_sel="sel" data-mode="edit"
+ */
+
+  $(document).on('click', '.act_mode-toggle', function(evt) {
+    let sv = evt.target.dataset['mode_save'];
+    let nm = evt.target.dataset['mode_sel'];
+    let cn = evt.target.dataset['mode'];
+    let cl = 'mode_'+cn;
+    let el = document.getElementById(nm);
+
+    if (el) {
+      if (el.classList.contains(cl)) {
+        if (evt.target.tagName == 'TEXTAREA') return;
+
+        el.classList.remove(cl);
+        document.body.classList.remove(cn);
+        clearMode(cn);
+      }
+      else {
+        el.classList.add(cl);
+        document.body.classList.add(cn);
+
+        if (sv && sv.indexOf(':*') > 0) saveMode(cn, true);
+        else if (sv)                    saveMode(cn);
+      }
+    }
+    else {
+      if (document.body.classList.contains(cl)) {
+        document.body.classList.remove(cl);
+        document.body.classList.remove(cn);
+        clearMode(cn);
+      }
+      else {
+        document.body.classList.add(cl);
+        document.body.classList.add(cn);
+
+        if (sv && sv.indexOf(':*') > 0) saveMode(cn, true);
+        else if (sv)                    saveMode(cn);
+      }
+    }
+
+    setTimeout(function() {
+      //el.scrollIntoView();//{ behavior: "smooth"});
+      window.dispatchEvent(new Event('resize'));
+    },1);
+
+    evt.preventDefault();
+  });
+
+  $(document).on('click', '.act_popup-show', function(evt) {
+    evt.preventDefault();
+
+    let $el = $(evt.target);
+    let path = $el.data('path');
+    let main = $el.data('form');
+    let href = $el.attr('href');
+    let name = $el.attr('name');
+    let save = $el.data('mode_save');
+    let $form = $el.parents('form');
+    let $main = main?$(main):null;
+
+    if (!path && href) path = href;
+
+    popupPath(0, path, function(item) {
+      if (!item) return;
+      if (save) saveMode(save);
+      Utils.flushResourceCache();
+      $el.val(item);
+      if ($main && $main.length) {
+        submitFormAsync($main.get(0), function() {
+          Utils.flushResourceCache();
+          $form.trigger('submit');
+        });
+      }
+      else {
+        $form.trigger('submit');
+      }
+    });
+  });
+
+  /*
+  <form id="save_selection" method="post" action="{{res_path "/session/selection"}}">
+    <input type="hidden" name="_rt" value="resource/selection">
+    <input type="hidden" name=":reset" value="{{res_path "/session/selection"}}">
+    <input type="hidden" name=":forward" value="{{req_path "/session/selection" "res-delete"}}">
+    <button type="submit" class="act_dialog-show">x</button>
+  </form>
+   */
+
+  $(document).on('click', '.act_dialog-show', function(evt) {
+    evt.preventDefault();
+
+    let $el = $(evt.target);
+    let path = $el.data('path');
+    let main = $el.data('form');
+    let href = $el.attr('href');
+    let save = $el.data('mode_save');
+    let $form = $el.parents('form');
+    let $main = main?$(main):null;
+
+    if (!path && href) path = href;
+    if (!path) path = $main.find("input[name=':forward']").val();
+    if (!$main || $main.length == 0) $main = $el.parents('form');
+
+    if (save) saveMode(save);
+    Utils.flushResourceCache();
+    if ($main && $main.length) {
+      submitFormAsync($main.get(0), function() {
+        Utils.flushResourceCache();
+        window.open(path, '_blank');
+      });
+    }
+    else {
+      window.open(path, '_blank');
+    }
+  });
+
+  /*
+    <button type="submit" class="act_dialog-confirm" data-message="Delete?">x</button>
+  */
+
+  $(document).on('click', '.act_dialog-confirm', function(evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    let $el = $(evt.target);
+    let main = $el.data('form');
+    let msg = $el.data('message');
+    let save = $el.data('mode_save');
+    let $main = main?$(main):null;
+    let $form = $el.parents('form');
+
+    if (!msg) msg = 'Do you want to continue?';
+    if ($form.length == 0 && $el.attr('form')) $form = $('#'+$el.attr('form'));
+
+    if (!confirm(msg)) return;
+
+    if (save) saveMode(save);
+    Utils.flushResourceCache();
+    if ($main && $main.length) {
+      submitFormAsync($main.get(0), function() {
+        Utils.flushResourceCache();
+        if (evt.target.type == 'submit') {
+          let sevt = new SubmitEvent('submit', { submitter: evt.target, bubbles:true, cancelable:true });
+          $form.get(0).dispatchEvent(sevt);
+        }
+        else $form.trigger('submit');
+      });
+    }
+    else {
+      if (evt.target.type == 'submit') {
+        let sevt = new SubmitEvent('submit', { submitter: evt.target, bubbles:true, cancelable:true });
+        $form.get(0).dispatchEvent(sevt);
+      }
+      else $form.trigger('submit');
+    }
+  });
+
+  $(document).on('click', '.act_popup-item-sel', function(evt) {
+    evt.preventDefault();
+
+    if (evt.target.classList.contains('act_dialog-confirm')) return;
+    if (evt.target.classList.contains('act_dialog-show')) return;
+
+    let item_ref = $(evt.target).data('item_ref');
+    if (!item_ref) item_ref = $(evt.target).parents('[data-item_ref]').data('item_ref');
+    if (!item_ref && evt.target.form) {
+      let data = handler.parseFormElement(evt.target.form);
+      if (data) item_ref = data.formData;
+    }
+
+    if (item_ref) {
+      if (window.top != window) {
+        window.top.postMessage(item_ref, window.location);
+      }
+      else if (window.opener != window) {
+        window.opener.postMessage(item_ref, window.location);
+      }
+    }
+  });
+
+  $(document).on('click', '.act_trigger', function(evt) {
+    let nm = evt.target.dataset['trigger_sel'];
+    let en = evt.target.dataset['trigger'];
+
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    let $el = $(nm);
+    if ($el.length == 0) {
+      console.log('unable to find action ' + nm);
+    }
+    else if (!en || en == 'click') {
+      triggerAction(nm);
+    }
+    else {
+      $el.trigger(en);
+    }
+  });
+
+  $(document).on('click', '.ui_button-upload', function(evt) {
+    if (!evt.target.classList.contains('ui_button-upload')) return;
+
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    $file = $(evt.target).find('input[type=file]');
+    if ($file.length) {
+      let el = $file.get(0);
+      el.onchange = function() {
+        delete el.change;
+
+        let $form = $(el.form);
+        $form.trigger('submit');
+      };
+      el.click();
+    }
+  });
+
+  $(document).on('change', '.act_form-submit', function(evt) {
+    evt.preventDefault();
+
+    let $form = $(evt.target.form);
+    $form.trigger('submit');
+  });
+
+});
+
+$.template = function(name, values) {
+  let tel = document.getElementById(name);
+  if (tel) {
+    let func = window['__template__'+name];
+
+    if (func) {
+      return func(values);
+    }
+    else {
+      if (tel) {
+        let func = Handlebars.compile(tel.innerHTML);
+        window['__template__'+name] = func;
+        return func(values);
+      }
+      else {
+        return null;
+      }
+    }
+  }
+  else if (name) {
+    let func = Handlebars.compile(name);
+    return func(values);
+  }
+};
+
+$.fn.template = function(name, values) {
+  let html =$.template(name, values);
+  this.each(function(n, it) {
+    it.innerHTML = html;
+  });
+};
+
+$.post = function(url, data, cb) {
+  let xhr = new XMLHttpRequest();
+  xhr.open('POST', url, true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState == 4) {
+      if (cb) cb(xhr.responseText);
+    }
+  }
+  xhr.send(data);
+};
+
+$.get = function(url, cb) {
+  let xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState == 4) {
+      if (cb) cb(xhr.responseText);
+    }
+  }
+  xhr.send();
+};
+
+$.getJSON = function(url, cb) {
+  $.get(url, function(rv) {
+    if (cb) cb(JSON.parse(rv));
+  });
+};

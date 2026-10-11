@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>upload</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <link rel="stylesheet" href="libs/ui.css">
+
+  <script src="libs/cash.js" type="text/javascript"></script>
+  <script src="libs/ui.js" type="text/javascript"></script>
+  <script src="libs/ui-components.js" type="text/javascript"></script>
+  <script src="libs/turndown.js" type="text/javascript"></script>
+
+  <script src="capture.js" type="text/javascript"></script>
+</head>
+
+<body class="ui_group padding margins">
+  <a href="search.html">search</a>
+  <a href="browse.html">browse</a>
+
+  <div>
+    <form action="/api/capture" method="post" enctype="multipart/form-data">
+      <h1>Capture</h1>
+      Group: <input name="groupname" type="text"></input>
+      
+      <div class="ui_drop-zone">
+        <input name="filename" type="text"></input>
+        <input name="modified" type="datetime-local">
+        <span class="ui_button-upload">Select File...<input name="datafile" type="file"></input></span>
+      </div>
+
+      <h3>Comments</h3>
+      <div class="ui_drop-zone">
+        <textarea id="sec_comments" name="textcontent" class="full-width"></textarea>
+      </div>
+
+      <button id="act_paste">Clipboard</button>
+      <input type="submit"></input>
+    </form>
+  </div>
+
+</body>
+</html>
