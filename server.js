@@ -6,11 +6,14 @@ const multer  = require('multer');
 const SearchIndex = require('./SearchIndex');
 const Repository = require('./Repository');
 
-const app = express();
-const PORT = 3000;
+const config = fs.readJsonSync('./config.json');
 
-const search = new SearchIndex('./_records');
-const repo = new Repository('./_records');
+const PORT = 3000;
+const BASE = config.repositoryBase || './_repository';
+
+const app = express();
+const search = new SearchIndex(BASE);
+const repo = new Repository(BASE);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

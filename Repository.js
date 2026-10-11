@@ -6,7 +6,7 @@ const Transformer = require('./Transformer');
 class Repository {
   constructor(filePath) {
     this.filePath = filePath;
-    this.registry = fs.readJsonSync('./transformers.json');
+    this.registry = fs.readJsonSync('./files2md.json');
   }
 
   _fragmentToFilePath(path) {

@@ -2,7 +2,7 @@ const sh = require('shelljs');
 const fs = require('fs-extra');
 const paths = require('path');
 const Transformer = require('./Transformer');
-const registry = fs.readJsonSync('./transformers.json');
+const registry = fs.readJsonSync('./files2md.json');
 
 let path = process.argv[2];
 let ignore = ['info.md', 'content.md', 'index.db'];
