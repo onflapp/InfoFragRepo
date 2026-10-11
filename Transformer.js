@@ -14,8 +14,15 @@ class Transformer {
     if (type) {
       let name = this.registry[type.toLowerCase()];
       if (name) {
-        let transform = require('./transformers/'+name).transform;
-        return transform;
+        try {
+          let transform = require('./transformers/'+name).transform;
+          return transform;
+        }
+        catch(ex) {
+          console.log('unable to load transformer '+name+' for '+type);
+          console.error(ex);
+          return null;
+        }
       }
       else {
         console.log('unknown handler for '+type);
@@ -34,9 +41,15 @@ class Transformer {
       let transform = self.lookupTransformer(input);
         
       if (transform) {
-        transform(input, function(output) {
-          done(output);
-        });
+        try {
+          transform(input, function(output) {
+            done(output);
+          });
+        }
+        catch(ex) {
+          console.log(ex);
+          done();
+        }
       }
       else {
         console.log('unable to find transformer for '+input);

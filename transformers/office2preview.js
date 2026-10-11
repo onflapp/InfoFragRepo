@@ -1,38 +1,36 @@
-function transform(input, dest, done) {
+function transform(input, done) {
   const path = require('path');
   const fs = require('fs').promises;
+  const tmp = require('tmp');
   const libre = require('libreoffice-convert');
+  const itools =require('../ImageTools');
   const convertAsync = require('util').promisify(libre.convert);
-  const output = dest+'/preview.pdf';
+
+  //tmp.setGracefulCleanup();
+
+  const preview = tmp.tmpNameSync()+'.pdf';
+  const thumbnail= tmp.tmpNameSync()+'.png';
   const opts = null;
 
-  fs.readFile(input).then(function(docxBuf) {
-    convertAsync(docxBuf, '.pdf', opts).then(function (pdfBuf) {
-      if (pdfBuf) {
-        fs.writeFile(output, pdfBuf).then(function() {
-          make_thumbnail(pdfBuf, dest, function(ipath) {
-            done([output, ipath]);
+
+  fs.readFile(input).then(function(dbuff) {
+    convertAsync(dbuff, '.pdf', opts).then(function (pbuff) {
+      if (pbuff) {
+        fs.writeFile(preview, pbuff).then(function() {
+          let rv = {};
+          rv.preview = preview;
+
+          itools.make_thumbnail_pdf(pbuff, function(buff) {
+            fs.writeFile(thumbnail, buff).then(function() {
+              rv.thumbnail= thumbnail;
+              done(rv);
+            });
           });
         });
       }
     }).catch(function(err) {
       console.log('unable to convert ' + input + ':' + err);;
       done();
-    });
-  });
-}
-
-function make_thumbnail(input, dest, done) {
-  const fs = require('fs').promises;
-  const pdf = require('pdf-to-img').pdf;
-  
-  pdf(input, { scale: 1 }).then(function(doc) {
-    const output = dest+'/thumbnail.png';
-
-    doc.getPage(1).then(function(buff) {
-      fs.writeFile(output, buff).then(function() {
-        done(output);
-      });
     });
   });
 }

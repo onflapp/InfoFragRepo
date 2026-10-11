@@ -89,7 +89,6 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
       timestamp: ts
     };
 
-    console.log(info);
     repo.createFragment(info).then((rv) => {
       console.log('done');
     });

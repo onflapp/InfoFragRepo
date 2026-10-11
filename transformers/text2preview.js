@@ -1,40 +1,46 @@
-function transform(input, dest, done) {
-  const path = require('path');
-  const fs = require('fs');
-  const output = dest+'/preview.pdf';
-  const mdpdf = require('@mdpdf/mdpdf');
+const mdpdf = require('@mdpdf/mdpdf');
+const fs = require('fs');
+const itools = require('../ImageTools');
+const tmp = require('tmp');
+
+function convert_md(buff, done) {
   const opts = {
-    margin:'5mm'
+    margin:'2mm'
   };
 
-  fs.readFile(input, 'utf8', function(err, buff) {
-    mdpdf.markdownToPdf(buff, opts).then(function(pdfBuff) {
-      fs.writeFile(output, pdfBuff, function(err) {
-        make_thumbnail(pdfBuff, dest, function(ipath) {
-          done([output, ipath]);
-        });
-      });
-    })
-    .catch(function(err) {
-      console.log(err);
-      console.log(input);
+  mdpdf.markdownToPdf(buff, opts).then(function(pbuff) {
+    itools.make_thumbnail_pdf(pbuff, function(tbuff) {
+      done(pbuff, tbuff);
     });
+  })
+  .catch(function(err) {
+    console.log(err);
+    done();
   });
 }
 
-function make_thumbnail(input, dest, done) {
-  const fs = require('fs').promises;
-  const pdf = require('pdf-to-img').pdf;
-  
-  pdf(input, { scale: 1 }).then(function(doc) {
-    const output = dest+'/thumbnail.png';
+function transform(input, done) {
+  const thumbnail= tmp.tmpNameSync()+'.png';
+  const preview = tmp.tmpNameSync()+'.pdf';
 
-    doc.getPage(1).then(function(buff) {
-      fs.writeFile(output, buff).then(function() {
-        done(output);
-      });
+  fs.readFile(input, function(tbuff) {
+
+    let rv = {};
+
+    convert_md(tbuff, function(pbuff, tbuff) {
+      rv.preview = preview;
+      fs.writeFileSync(preview, pbuff);
+
+      rv.thumbnail= thumbnail;
+      fs.writeFileSync(thumbnail, tbuff);
+
+      done(rv);
     });
+
   });
 }
 
-module.exports.transform = transform;
+module.exports = {
+  transform:transform,
+  convert_md:convert_md
+};

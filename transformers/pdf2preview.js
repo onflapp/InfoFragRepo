@@ -1,29 +1,28 @@
-function transform(input, dest, done) {
+function transform(input, done) {
   const path = require('path');
   const fs = require('fs');
-  const output = dest+'/preview.pdf';
+  const tmp = require('tmp');
+  const itools =require('../ImageTools');
 
-  fs.copyFile(input, output, function(err) {
-    make_thumbnail(input, dest, function(ipath) {
-      done([output, ipath]);
+  const preview = tmp.tmpNameSync()+'.pdf';
+  const thumbnail= tmp.tmpNameSync()+'.png';
+
+  fs.copyFile(input, preview, function(err) {
+    let rv = {};
+    rv.preview = preview;
+
+    itools.make_thumbnail_pdf(fs.readFileSync(preview), function(buff) {
+      if (buff) {
+        fs.writeFile(thumbnail, buff, function() {
+          rv.thumbnail= thumbnail;
+          done(rv);
+        });
+      }
+      else {
+        done();
+      }
     });
   });
 }
-
-function make_thumbnail(input, dest, done) {
-  const fs = require('fs').promises;
-  const pdf = require('pdf-to-img').pdf;
-  
-  pdf(input, { scale: 1.5 }).then(function(doc) {
-    const output = dest+'/thumbnail.png';
-
-    doc.getPage(1).then(function(buff) {
-      fs.writeFile(output, buff).then(function() {
-        done(output);
-      });
-    });
-  });
-}
-
 
 module.exports.transform = transform;

@@ -41,9 +41,9 @@ function transform(input, done) {
     header.title = (email.subject || 'No Subject');
     header.resource = escape(path.basename(input));
 
-    markdownOutput += '**From:** ' + (email.from?.text || 'Unknown') + '\n';
-    markdownOutput += '**To:** ' + (email.to?.text || 'Unknown') + '\n';
-    markdownOutput += '**Date:** ' + (email.date ? email.date.toISOString() : 'Unknown') + '\n';
+    markdownOutput += '**From:** ' + (email.from?.text || 'Unknown') + '  \n';
+    markdownOutput += '**To:** ' + (email.to?.text || 'Unknown') + '  \n';
+    markdownOutput += '**Date:** ' + (email.date ? email.date.toISOString() : 'Unknown') + '  \n';
     markdownOutput += '\n\n\n---\n\n\n';
 
     if (htmlContent) {

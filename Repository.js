@@ -6,7 +6,8 @@ const Transformer = require('./Transformer');
 class Repository {
   constructor(filePath) {
     this.filePath = filePath;
-    this.registry = fs.readJsonSync('./files2md.json');
+    this.mdRegistry = fs.readJsonSync('./files2md.json');
+    this.previewRegistry = fs.readJsonSync('./files2preview.json');
   }
 
   _fragmentToFilePath(path) {
@@ -22,13 +23,36 @@ class Repository {
   }
 
   async _generate(input) {
+    const trans = new Transformer(this.previewRegistry);
+
     return new Promise((done, error) => {
-      done();
+      trans.transformInput(input).then((rv) => {
+console.log('111111111111111111');
+        let dir = paths.dirname(input);
+
+        if (rv && rv.preview) {
+          let ext = paths.extname(rv.preview);
+          let out = paths.join(dir, 'preview'+ext);
+          fs.move(rv.preview, out, {overwrite: true});
+
+          console.log(out);
+        }
+
+        if (rv && rv.thumbnail) {
+          let ext = paths.extname(rv.thumbnail);
+          let out = paths.join(dir, 'thumbnail'+ext);
+          fs.move(rv.thumbnail, out, {overwrite: true});
+
+          console.log(out);
+        }
+
+        done();
+      });
     });
   }
 
   async _transform(input) {
-    const trans = new Transformer(this.registry);
+    const trans = new Transformer(this.mdRegistry);
 
     return new Promise((done, error) => {
       trans.transformInput(input).then((rv) => {
@@ -89,7 +113,7 @@ class Repository {
       await this._transform(tfile);
       await this._generate(tfile);
     }
-
+console.log(info);
     let frag = new Fragment(dir);
     await frag.writeInformation(info);
 

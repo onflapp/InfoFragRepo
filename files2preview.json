@@ -1,17 +1,11 @@
 {
-  "application/pdf":"pdf2md",
-  "image/png":"img2md",
-  "image/jpeg":"img2md",
-  "text/html":"html2md",
+  "application/pdf":"pdf2preview",
+  "image/png":"img2preview",
+  "image/jpeg":"img2preview",
+  "text/html":"html2preview",
   "text/plain":"text2md",
-  "text/calendar":"ics2md",
-  "text/x-vcard":"vcf2md",
-  "message/rfc822":"eml2md",
-  "application/rtf":"rtf2md",
-  "xximage/vnd.adobe.photoshop":"psd2md",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"office2md",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation":"office2md",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"office2md",
-  ".webloc":"webloc2md",
-  ".textclipping":"textclipping2md"
+  "message/rfc822":"eml2md_preview",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"office2preview",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":"office2preview",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"office2preview"
 }

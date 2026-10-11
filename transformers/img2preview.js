@@ -1,13 +1,24 @@
-function transform(input, dest, done) {
-  const sharp = require('sharp');
-  const output = dest+'/thumbnail.png';
-  
-  sharp(input)
-  .autoOrient()
-  .resize({ width:512, width:512 })
-  .toFile(output, function() {
-    done([output]);
+function transform(input, done) {
+  const path = require('path');
+  const fs = require('fs');
+  const tmp = require('tmp');
+  const itools =require('../ImageTools');
+
+  const preview = tmp.tmpNameSync()+'.png';
+  const thumbnail= tmp.tmpNameSync()+'.png';
+
+  fs.copyFile(input, preview, function(err) {
+    let rv = {};
+    rv.preview = preview;
+
+    itools.make_thumbnail_img(preview, function(buff) {
+      fs.writeFile(thumbnail, buff, function() {
+        rv.thumbnail= thumbnail;
+        done(rv);
+      });
+    });
   });
+
 }
 
 module.exports.transform = transform;
