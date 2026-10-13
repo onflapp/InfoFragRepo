@@ -143,7 +143,7 @@ class SearchIndex {
       let results = [];
       let rv = [];
 
-      if (filter) {
+      if (filter && Object.keys(filter).length > 0) {
         if (filter.group && !filter.start && !filter.end) {
           if (query) {
             rv = this.querySQL2.all(filter.group, query);

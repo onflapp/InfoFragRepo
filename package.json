@@ -8,7 +8,6 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "@deepseek-ai/libreoffice-kit": "^0.2.0",
     "@firecrawl/anydoc": "^0.2.4",
     "@mdpdf/mdpdf": "^0.1.7",
     "@opendocsg/pdf2md": "^0.3.4",
