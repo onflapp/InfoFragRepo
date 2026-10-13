@@ -1,5 +1,5 @@
 const mdpdf = require('@mdpdf/mdpdf');
-const fs = require('fs');
+const fs = require('fs-extra');
 const itools = require('../ImageTools');
 const tmp = require('tmp');
 
@@ -23,11 +23,10 @@ function transform(input, done) {
   const thumbnail= tmp.tmpNameSync()+'.png';
   const preview = tmp.tmpNameSync()+'.pdf';
 
-  fs.readFile(input, function(tbuff) {
-
+  fs.readFile(input, 'utf8', function(err, buff) {
     let rv = {};
 
-    convert_md(tbuff, function(pbuff, tbuff) {
+    convert_md(buff, function(pbuff, tbuff) {
       rv.preview = preview;
       fs.writeFileSync(preview, pbuff);
 

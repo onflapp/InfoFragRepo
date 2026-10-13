@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const paths = require('node:path');
+const hash= require('hash.js');
 const Fragment = require('./Fragment');
 const Transformer = require('./Transformer');
 
@@ -14,20 +15,28 @@ class Repository {
     return paths.join(this.filePath, path);
   }
 
-  _makeName(group) {
-    let t = Date.now();
-    let n = t + '-' + Math.round(Math.random() * 1E9);
+  _makeName(group, file) {
+    if (file) {
+      let n = 'x-'+hash.sha1().update(file).digest('hex');
 
-    if (group) return group+'/'+n;
-    else return n;
+      if (group) return group+'/'+n;
+      else return n;
+    }
+    else {
+      let t = Date.now();
+      let n = t + '-' + Math.round(Math.random() * 1E9);
+
+      if (group) return group+'/'+n;
+      else return n;
+    }
   }
 
-  async _generate(input) {
+  async _generate(frag, input) {
     const trans = new Transformer(this.previewRegistry);
 
     return new Promise((done, error) => {
       trans.transformInput(input).then((rv) => {
-        let dir = paths.dirname(input);
+        let dir = frag.fragmentPath();
 
         if (rv && rv.preview) {
           let ext = paths.extname(rv.preview);
@@ -50,17 +59,17 @@ class Repository {
     });
   }
 
-  async _transform(input) {
+  async _transform(frag, input) {
     const trans = new Transformer(this.mdRegistry);
 
     return new Promise((done, error) => {
       trans.transformInput(input).then((rv) => {
-        let dir = paths.dirname(input);
-
         if (rv) {
-          let frag = new Fragment(dir);
+          if (!rv.content) {
+            console.log(rv);
+          }
           frag.storeContent(rv.metadata, rv.content).then(() => {
-            done(dir);
+            done(input);
           });
         }
         else {
@@ -98,25 +107,75 @@ class Repository {
     return rv;
   }
 
-  async createFragment(info, path) {
+  async updateFragmentContent(path) {
+    let frag = new Fragment(path);
+    if (!frag.isReadable()) return;
+
+    let fdir = frag.fragmentPath();
+    let ls = await fs.readdir(fdir, { withFileTypes: true });
+
+    let ignore = ['info.md', 'content.md', 'preview.png', 'preview.pdf', 'thumbnail.png'];
+    let tfile = null;
+
+    for (const item of ls) {
+      if (!item.isDirectory() && ignore.indexOf(item.name) == -1 && item.name.charAt(0) != '.') {
+        tfile = paths.join(fdir, item.name);
+        break;
+      }
+    }
+
+    if (tfile) {
+      await this._transform(frag, tfile);
+      await this._generate(frag, tfile);
+    }
+    else {
+      let ifile = paths.join(fdir, 'info.md');
+      await this._generate(frag, ifile);
+    }
+
+    return frag.fragmentPath();
+  }
+
+  async addExternalFragment(info, file) {
+    let dir = paths.join(this.filePath, this._makeName(info.group, file));
+    let title = info.title;
+
+    await fs.ensureDir(dir);
+    let frag = new Fragment(dir);
+
+    await this._transform(frag, file);
+    await this._generate(frag, file);
+
+    console.log(info);
+    await frag.writeInformation(info);
+
+    return frag.fragmentPath();
+  }
+
+  async createFragment(info, file) {
     let dir = paths.join(this.filePath, this._makeName(info.group));
     let title = info.title;
 
     await fs.ensureDir(dir);
-
-    if (path) {
-      let ext = paths.extname(path);
-      let tfile = paths.join(dir, title+ext);
-
-      await fs.move(path, tfile);
-      await this._transform(tfile);
-      await this._generate(tfile);
-    }
-console.log(info);
     let frag = new Fragment(dir);
+
     await frag.writeInformation(info);
 
-    return dir;
+    if (file) {
+      let ext = paths.extname(file);
+      let tfile = paths.join(dir, title+ext);
+
+      await fs.move(file, tfile);
+      await this._transform(frag, tfile);
+      await this._generate(frag, tfile);
+    }
+    else if (info.comments) {
+      let ifile = paths.join(dir, 'info.md');
+      await this._generate(frag, ifile);
+    }
+
+
+    return frag.fragmentPath();
   }
 }
 

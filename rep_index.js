@@ -1,7 +1,10 @@
 const SearchIndex = require('./SearchIndex');
 const sh = require('shelljs');
+const fs = require('fs-extra');
 
-let path = './_repository';
+const config = fs.readJsonSync('./config.json');
+
+let path = config.repositoryBase || './_repository';
 let index = new SearchIndex(path);
 
 let list = sh.find(path).filter((file) => { return file.match(/info\.md$/); });

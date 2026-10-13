@@ -3,8 +3,10 @@
   "image/png":"img2preview",
   "image/jpeg":"img2preview",
   "text/html":"html2preview",
-  "text/plain":"text2md",
-  "message/rfc822":"eml2md_preview",
+  "text/calendar":"ics2preview",
+  "text/plain":"text2preview",
+  "text/markdown":"text2preview",
+  "message/rfc822":"eml2preview_md",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"office2preview",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation":"office2preview",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"office2preview"

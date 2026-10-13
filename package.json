@@ -7,10 +7,8 @@
   "scripts": {
     "start": "node app.js"
   },
-  "overrides": {
-    "pdfjs-dist": "6.1.200"
-  },
   "dependencies": {
+    "@deepseek-ai/libreoffice-kit": "^0.2.0",
     "@firecrawl/anydoc": "^0.2.4",
     "@mdpdf/mdpdf": "^0.1.7",
     "@opendocsg/pdf2md": "^0.3.4",
@@ -26,7 +24,6 @@
     "node-ical": "^0.27.3",
     "node-tesseract-ocr": "^2.2.1",
     "pdf-to-img": "^7.0.1",
-    "puppeteer": "^25.13.0",
     "remove-markdown": "^0.8.0",
     "sentence-splitter": "^5.0.1",
     "sharp": "^0.35.5",
