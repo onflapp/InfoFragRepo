@@ -7,7 +7,12 @@
   "text/plain":"text2preview",
   "text/markdown":"text2preview",
   "message/rfc822":"eml2preview_md",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"office2preview",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation":"office2preview",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"office2preview"
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"office2preview_external",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":"office2preview_external",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"office2preview_external",
+  "application/vnd.oasis.opendocument.graphics":"office2preview_external",
+  "application/vnd.oasis.opendocument.text":"office2preview_external",
+  "application/vnd.oasis.opendocument.presentation":"office2preview_external",
+  "application/vnd.oasis.opendocument.spreadsheet":"office2preview_external",
+  ".webloc":"webloc2preview"
 }

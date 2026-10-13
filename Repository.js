@@ -17,7 +17,8 @@ class Repository {
 
   _makeName(group, file) {
     if (file) {
-      let n = 'x-'+hash.sha1().update(file).digest('hex');
+      let h = hash.sha1().update(file).digest('hex');
+      let n = 'extern/'+h.substr(0,2)+'/'+h.substr(2);
 
       if (group) return group+'/'+n;
       else return n;
