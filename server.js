@@ -2,14 +2,15 @@ const express = require('express');
 const fs = require('fs-extra');
 const paths = require('path');
 const multer  = require('multer');
+const utils = require('./utils.js');
 
 const SearchIndex = require('./SearchIndex');
 const Repository = require('./Repository');
 
-const config = fs.readJsonSync('./config.json');
+const config = utils.read_json('./config.json');
 
 const PORT = 3000;
-const BASE = config.repositoryBase || './_repository';
+const BASE = utils.resolve_path(config.repositoryBase || './_repository');
 
 const app = express();
 const search = new SearchIndex(BASE);

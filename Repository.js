@@ -1,14 +1,15 @@
 const fs = require('fs-extra');
 const paths = require('node:path');
 const hash= require('hash.js');
+const utils = require('./utils.js');
 const Fragment = require('./Fragment');
 const Transformer = require('./Transformer');
 
 class Repository {
   constructor(filePath) {
-    this.filePath = filePath;
-    this.mdRegistry = fs.readJsonSync('./files2md.json');
-    this.previewRegistry = fs.readJsonSync('./files2preview.json');
+    this.filePath = utils.resolve_path(filePath);
+    this.mdRegistry = utils.read_json('./files2md.json');
+    this.previewRegistry = utils.read_json('./files2preview.json');
   }
 
   _fragmentToFilePath(path) {
@@ -106,6 +107,18 @@ class Repository {
     }
 
     return rv;
+  }
+
+  async readFragmentContentAtPath(fpath) {
+    let fdir = this._fragmentToFilePath(fpath);
+    let frag = new Fragment(fdir);
+
+    if (frag.isReadable()) {
+      return await frag.readContent();
+    }
+    else {
+      return null;
+    }
   }
 
   async updateFragmentContent(path) {

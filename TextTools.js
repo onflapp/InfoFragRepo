@@ -32,7 +32,9 @@ function extract_context(text, query, max) {
   let lines = cleanup_text(text).split('\n');
   let rv = [];
   lines.forEach(function(line) {
-    rv = rv.concat(extract_context_line(line, query, max));
+    extract_context_line(line, query, max).forEach(function(nline) {
+      if (rv.indexOf(nline) == -1) rv.push(nline);
+    });
   });
   return rv;
 }
@@ -89,7 +91,8 @@ function extract_context_line(text, query, max = 5) {
     if (stowords.indexOf(it.words[0]) >= 0) it.words.shift();
     if (stowords.indexOf(it.words[it.words.length-1]) >= 0) it.words.pop();
 
-    rv.push(it.words.join(''));
+    let line = it.words.join('').trim();
+    rv.push(line);
   });
 
   return rv;

@@ -2,7 +2,8 @@ const SearchIndex = require('./SearchIndex');
 const parseArgs = require('node:util').parseArgs;
 const fs = require('fs-extra');
 const chrono = require('chrono-node');
-const config = fs.readJsonSync('./config.json');
+const utils = require('./utils.js');
+const config = utils.read_json('./config.json');
 
 const options = {
   group: { type: 'string', short: 'g' },

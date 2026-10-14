@@ -5,7 +5,8 @@ const paths = require('node:path');
 class Fragment {
   constructor(filePath) {
     this.readable = false;
-    this.filePath = filePath;
+    this.filePath = paths.resolve(filePath);
+
     try {
       if (!fs.lstatSync(this.filePath).isDirectory()) {
         this.filePath = paths.dirname(this.filePath);

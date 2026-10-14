@@ -10,6 +10,7 @@
   "dependencies": {
     "@firecrawl/anydoc": "^0.2.4",
     "@mdpdf/mdpdf": "^0.1.7",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@opendocsg/pdf2md": "^0.3.4",
     "chrono-node": "^2.10.2",
     "express": "^5.2.1",
@@ -32,7 +33,8 @@
     "tmp": "^0.2.7",
     "turndown": "^7.2.4",
     "vcard-parser": "^1.0.0",
-    "wink-nlp": "^2.4.0"
+    "wink-nlp": "^2.4.0",
+    "zod": "^4.6.7"
   },
   "license": "MIT"
 }

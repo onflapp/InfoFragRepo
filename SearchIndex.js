@@ -2,18 +2,25 @@ const fs = require('fs-extra');
 const paths = require('node:path');
 const sqlite = require('node:sqlite');
 const Fragment = require('./Fragment');
+const utils = require('./utils.js');
 
 class SearchIndex {
   constructor(filePath) {
-    this.filePath = filePath;
+    this.filePath = utils.resolve_path(filePath);
 
-    fs.mkdirSync(filePath, { recursive: true });
-    this.database = new sqlite.DatabaseSync(this.filePath+'/index.db');
+    fs.mkdirSync(this.filePath, { recursive: true });
+  
+    let dpath = paths.join(this.filePath, 'index.db');
+    this.database = new sqlite.DatabaseSync(dpath);
     this._prepare();
   }
 
   _fileToFragmentPath(path) {
-    return path.substr(this.filePath.length-1);
+    return path.substr(this.filePath.length+1);
+  }
+
+  _fragmentToFilePath(path) {
+    return paths.join(this.filePath, path);
   }
 
   _prepare() {
@@ -54,14 +61,16 @@ class SearchIndex {
     return rv.join('\n');
   }
 
-  async _extractInfo(path, query) {
+  async _extractInfo(path, query, props) {
     const tools = require('./TextTools');
 
-    let frag = new Fragment(path);
+    let fpath = this._fragmentToFilePath(path);
+    let frag = new Fragment(fpath);
+
     if (!frag.isReadable()) return null;
 
     let info = await frag.readInformation();
-    info.path = this._fileToFragmentPath(path);
+    info.path = this._fileToFragmentPath(frag.fragmentPath());
 
     if (query) {
       let body = await frag.readContent();
@@ -69,7 +78,12 @@ class SearchIndex {
 
       if (body) {
         info.matches = info.matches.concat(tools.extract_context(body, query));
+        if (props && props.content) info.content = body;
       }
+    }
+    else if (props && props.content) {
+      let body = await frag.readContent();
+      if (body) info.content = body;
     }
       
     return info;
@@ -85,7 +99,7 @@ class SearchIndex {
     let frag = new Fragment(path);
     let toi = await frag.mdate();
 
-    let fpath = frag.fragmentPath();
+    let fpath = this._fileToFragmentPath(frag.fragmentPath());
     let rv = this.selectSQL.get(fpath);
 
     if (rv) {
@@ -134,11 +148,11 @@ class SearchIndex {
     return this.searchText(null, f);
   }
 
-  async listAll(filter) {
-    return this.searchText(null, filter);
+  async listAll(filter, props) {
+    return this.searchText(null, filter, props);
   }
 
-  async searchText(query, filter) {
+  async searchText(query, filter, props) {
     return new Promise((done, error) => {
       let results = [];
       let rv = [];
@@ -180,7 +194,7 @@ class SearchIndex {
       for (let i = 0; i < rv.length; i++) {
         let row = rv[i];
 
-        this._extractInfo(row.path, query).then((info) => {
+        this._extractInfo(row.path, query, props).then((info) => {
           if (info) results.push(info);
 
           rn++;
