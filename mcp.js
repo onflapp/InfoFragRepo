@@ -90,7 +90,7 @@ server.registerTool(
   async ({ group, query }) => {
     let filter = null;
 
-    let items = await search.searchText(query, filter, { content: false});
+    let items = await search.searchText(query, filter, { content: true});
     let text = '';
 
     for (const item of items) {
@@ -143,7 +143,7 @@ server.registerTool(
   async ({ group, query }) => {
     let filter = null;
 
-    let items = await search.listAll(filter);
+    let items = await search.listAll(filter, { content: true});
     let text = '';
 
     for (const item of items) {
