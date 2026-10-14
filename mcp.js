@@ -3,6 +3,8 @@ const Repository = require('./Repository');
 
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio.js");
+const { SSEServerTransport } = require("@modelcontextprotocol/sdk/server/sse.js");
+
 const { z } = require("zod");
 const fs = require('fs-extra');
 const paths = require('path');
@@ -93,7 +95,7 @@ server.registerTool(
 
     for (const item of items) {
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
-      text += '\n# fragment: ' +item.title + '\n';
+      text += '\n# fragment: [' +item.title + '](http://localhost:3000/'+item.path+')\n';
       text += item.type + '\n';
 
       if (item.group) {
@@ -146,9 +148,8 @@ server.registerTool(
 
     for (const item of items) {
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
-      text += '\n# fragment: ' +item.title + '\n';
+      text += '\n# fragment: [' +item.title + '](http://localhost:3000/'+item.path+')\n';
       text += item.type + '\n';
-      text += 'unique path: ' + item.path + '\n';
 
       if (item.group) {
         text += 'belongs to group: '+item.group+ '\n';
@@ -174,7 +175,31 @@ server.registerTool(
   }
 );
 
-const transport = new StdioServerTransport();
-server.connect(transport).then(function() {
-  console.error(`mcp server`);
-});
+let transport = null;
+
+function init_remote_server(app) {
+  app.get("/sse", async (req, res) => {
+    transport = new SSEServerTransport("/messages", res);
+    await server.connect(transport);
+  });
+
+  app.post("/messages", async (req, res) => {
+    if (transport) {
+      await transport.handleMessage(req, res);
+    } 
+    else {
+      res.status(400).send("No active SSE session found.");
+    }
+  });
+
+  console.log('remote MCP server running');
+}
+
+function init_local_server() {
+  transport = new StdioServerTransport();
+  server.connect(transport).then(function() {
+    console.error(`mcp server`);
+  });
+}
+
+init_local_server();
