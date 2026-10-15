@@ -103,6 +103,7 @@ server.registerTool(
 
     for (const item of items) {
       if (n > limit) break;
+      n++;
 
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
       text += '\n# fragment: ' +item.title + '\n';
@@ -160,12 +161,13 @@ server.registerTool(
     if (since) filter.start = new Date(since).getTime();
     if (until) filter.end = new Date(end).getTime();
 
-    let items = await search.listAll(filter, { content: true });
+    let items = await search.listAll(filter, { content: false });
     let text = '';
     let n = 0;
 
     for (const item of items) {
       if (n > limit) break;
+      n++;
 
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
       text += '\n# fragment: ' +item.title + '\n';
