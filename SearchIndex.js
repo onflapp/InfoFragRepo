@@ -32,10 +32,10 @@ class SearchIndex {
     this.selectSQL = this.database.prepare('SELECT toi FROM TextIndex WHERE path = ?');
     this.updateSQL = this.database.prepare('UPDATE TextIndex SET toi = ?, timestamp = ?, bucket = ?, body = ? WHERE path = ?');
     this.insertSQL = this.database.prepare('INSERT INTO TextIndex (toi, timestamp, path, bucket, body) VALUES(?, ?, ?, ?, ?)');
-    this.querySQL  = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE body MATCH ?');
-    this.querySQL2 = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ? AND body MATCH ?');
-    this.allSQL2   = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ? ORDER BY timestamp DESC');
-    this.allSQL    = this.database.prepare('SELECT path, timestamp FROM TextIndex ORDER BY timestamp DESC');
+    this.querySQL  = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE body MATCH ? ORDER BY CAST(timestamp AS INTEGER)');
+    this.querySQL2 = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ? AND body MATCH ? ORDER BY CAST(timestamp AS INTEGER)');
+    this.allSQL2   = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ? ORDER BY CAST(timestamp AS INTEGER) DESC');
+    this.allSQL    = this.database.prepare('SELECT path, timestamp FROM TextIndex ORDER BY CAST(timestamp AS INTEGER) DESC');
     this.groupsSQL = this.database.prepare('SELECT bucket, COUNT(*) AS records, MIN(timestamp) AS start, MAX(timestamp) AS end FROM TextIndex GROUP BY bucket ORDER BY bucket');
   }
 

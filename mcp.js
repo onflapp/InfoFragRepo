@@ -102,7 +102,7 @@ server.registerTool(
     let n = 0;
 
     for (const item of items) {
-      if (n > limit) break;
+      if (limit && n >= limit) break;
       n++;
 
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
@@ -166,7 +166,7 @@ server.registerTool(
     let n = 0;
 
     for (const item of items) {
-      if (n > limit) break;
+      if (limit && n >= limit) break;
       n++;
 
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
