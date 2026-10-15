@@ -39,9 +39,10 @@ or a document file (e.g. emails, PDFs, screenshots, spreadsheets) with a short c
 Individual fragments are identified by unique paths.`
 
     if (rv.length) {
-      text += 'It contains following groups:\n';
+      text += 'It contains following groups with fragment count and date of earliest/latest update:\n';
       for (const item of rv) {
-        text += '- ' + item.name + '\n';
+        text += '- ' + item.name + ', count: ' + item.count + ' '; 
+        text += 'from: ' + (new Date(item.start).toISOString()) + ' to ' + (new Date(item.end).toISOString()) + '\n';
       }
     }
 
@@ -84,26 +85,36 @@ server.registerTool(
     inputSchema: {
       query: z.string().describe("space-separated search terms"),
       group: z.string().optional().describe("optional group"),
+      since: z.iso.datetime().optional().describe("from specific time and date"),
+      until: z.iso.datetime().optional().describe("up to specific time and date"),
       limit: z.number().int().min(1).max(1000).default(10).describe("max fragments to return")
     },
   },
-  async ({ group, query }) => {
-    let filter = null;
+  async ({ group, query, since, until, limit }) => {
+    let filter = {};
 
-    let items = await search.searchText(query, filter, { content: true});
+    if (group) filter.group = group;
+    if (since) filter.start = new Date(since).getTime();
+    if (until) filter.end = new Date(end).getTime();
+
+    let items = await search.searchText(query, filter, { content: false});
     let text = '';
+    let n = 0;
 
     for (const item of items) {
+      if (n > limit) break;
+
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
-      text += '\n# fragment: [' +item.title + '](http://localhost:3000/'+item.path+')\n';
+      text += '\n# fragment: ' +item.title + '\n';
       text += item.type + '\n';
+      text += 'last update: ' + item.timestamp.toISOString()+ '\n';
 
       if (item.group) {
         text += 'belongs to group: '+item.group+ '\n';
       }
 
       if (item.matches && item.matches.length > 0) {
-        text += '\ncontain includes following matches:\n';
+        text += '\n### content contains following matches:\n';
         for (const m of item.matches) {
           text += '- ' + m + '\n';
         }
@@ -114,7 +125,7 @@ server.registerTool(
       }
 
       if (item.content) {
-        text += '\n### content:\n'+ item.content + '\n<!-- end of the content -->\n';
+        text += '\n### full content:\n'+ item.content + '\n<!-- end of the content -->\n';
       }
 
       text += '\n<!-- end of the fragment with path '+item.path+'-->\n';
@@ -134,22 +145,32 @@ server.registerTool(
   {
     title: "List All Information Fragments",
     description:
-      "List all information fragments that fit specified criteria",
+      "List all information fragments that fit specified criteria. Most recent fragments are on the top.",
     inputSchema: {
       group: z.string().optional().describe("optional group"),
+      since: z.iso.datetime().optional().describe("from specific time and date"),
+      until: z.iso.datetime().optional().describe("up to specific time and date"),
       limit: z.number().int().min(1).max(1000).default(10).describe("max fragments to return"),
     },
   },
-  async ({ group, query }) => {
-    let filter = null;
+  async ({ group, since, until, limit }) => {
+    let filter = {};
 
-    let items = await search.listAll(filter, { content: true});
+    if (group) filter.group = group;
+    if (since) filter.start = new Date(since).getTime();
+    if (until) filter.end = new Date(end).getTime();
+
+    let items = await search.listAll(filter, { content: true });
     let text = '';
+    let n = 0;
 
     for (const item of items) {
+      if (n > limit) break;
+
       text += '\n<-! start of the fragment with path '+item.path+' -->\n';
-      text += '\n# fragment: [' +item.title + '](http://localhost:3000/'+item.path+')\n';
+      text += '\n# fragment: ' +item.title + '\n';
       text += item.type + '\n';
+      text += 'last update: ' + item.timestamp.toISOString()+ '\n';
 
       if (item.group) {
         text += 'belongs to group: '+item.group+ '\n';
@@ -160,7 +181,7 @@ server.registerTool(
       }
 
       if (item.content) {
-        text += '\n### content:\n'+ item.content + '\n<!-- end of the content -->\n';
+        text += '\n### full content:\n'+ item.content + '\n<!-- end of the content -->\n';
       }
 
       text += '\n<!-- end of the fragment with path '+item.path+'-->\n';

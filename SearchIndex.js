@@ -25,7 +25,7 @@ class SearchIndex {
 
   _prepare() {
     let sql = '';
-    sql += 'CREATE VIRTUAL TABLE IF NOT EXISTS TextIndex USING fts5(toi UNINDEXED, path UNINDEXED, timestamp, bucket, body)';
+    sql += 'CREATE VIRTUAL TABLE IF NOT EXISTS TextIndex USING fts5(toi UNINDEXED, path UNINDEXED, timestamp UNINDEXED, bucket, body)';
 
     this.database.exec(sql);
 
@@ -34,9 +34,9 @@ class SearchIndex {
     this.insertSQL = this.database.prepare('INSERT INTO TextIndex (toi, timestamp, path, bucket, body) VALUES(?, ?, ?, ?, ?)');
     this.querySQL  = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE body MATCH ?');
     this.querySQL2 = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ? AND body MATCH ?');
-    this.querySQL3 = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ?');
-    this.allSQL    = this.database.prepare('SELECT path, timestamp FROM TextIndex');
-    this.groupsSQL = this.database.prepare('SELECT DISTINCT bucket FROM TextIndex');
+    this.allSQL2   = this.database.prepare('SELECT path, timestamp FROM TextIndex WHERE bucket = ? ORDER BY timestamp DESC');
+    this.allSQL    = this.database.prepare('SELECT path, timestamp FROM TextIndex ORDER BY timestamp DESC');
+    this.groupsSQL = this.database.prepare('SELECT bucket, COUNT(*) AS records, MIN(timestamp) AS start, MAX(timestamp) AS end FROM TextIndex GROUP BY bucket ORDER BY bucket');
   }
 
   _queryWords(query) {
@@ -135,7 +135,10 @@ class SearchIndex {
       for (let i = 0; i < rv.length; i++) {
         let row = rv[i];
         results.push({
-          name:row.bucket
+          name: row.bucket,
+          count: row.records,
+          start: row.start,
+          end: row.end
         });
       }
       done(results);
@@ -163,7 +166,7 @@ class SearchIndex {
             rv = this.querySQL2.all(filter.group, query);
           }
           else {
-            rv = this.querySQL3.all(filter.group);
+            rv = this.allSQL2.all(filter.group);
           }
         }
         else {
@@ -175,7 +178,7 @@ class SearchIndex {
           if (filter.end)   sql.push('timestamp <= '+filter.end);
           if (query)        sql.push('body MATCH '+sql_esc(query));
 
-          let sv = 'SELECT path, timestamp FROM TextIndex WHERE ' + sql.join(' AND ');
+          let sv = 'SELECT path, timestamp FROM TextIndex WHERE ' + sql.join(' AND ') + ' ORDER BY timestamp DESC';
           console.log(sv);
           let st = this.database.prepare(sv);
           rv = st.all();
