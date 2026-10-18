@@ -85,6 +85,18 @@ class Fragment {
     }
   }
 
+  async readSummary() {
+    try {
+      let spath = this._fragmentToFilePath('summary.md');
+      let data = await fs.readFile(spath, 'utf8');
+
+      return data;
+    }
+    catch(ex) {
+      return '';
+    }
+  }
+
   async readContentMetadata() {
     try {
       let cpath = this._fragmentToFilePath('content.md');
@@ -98,12 +110,14 @@ class Fragment {
     }
   }
 
-  async storeContent(info, content) {
+  async storeContent(info, content, summary) {
     let cpath = this._fragmentToFilePath('content.md');
     let spath = this._fragmentToFilePath('summary.md');
     let data = matter.stringify(content, info);
 
-    await fs.writeFile(cpath, data);
+    if (data) await fs.writeFile(cpath, data);
+
+    if (summary) await fs.writeFile(spath, summary);
   }
 
   async readInformation() {

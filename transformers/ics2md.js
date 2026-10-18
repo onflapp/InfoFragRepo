@@ -1,4 +1,4 @@
-function transform(input, done) {
+function parse_body(input, done) {
   const ical = require('node-ical');
   const path = require('path');
 
@@ -63,7 +63,7 @@ function transform(input, done) {
         }
       }
 
-      done({metadata:header, content:markdown});
+      done(header, markdown);
     }
     else {
       done();
@@ -71,4 +71,23 @@ function transform(input, done) {
   });
 }
 
-module.exports.transform = transform;
+function transform(input, done) {
+  const tools = require('./../TextTools');
+  const action = 'Summarize the meeting information in 3 sentences. Leave any information about how to connect or how to join';
+
+  parse_body(input, function(header, markdown) {
+    if (header) {
+      tools.summarize_text(action, markdown, function(summary) {
+        done({metadata:header, content:markdown, summary:summary});
+      });
+    }
+    else {
+      done();
+    }
+  });
+}
+
+module.exports = {
+  transform:transform,
+  parse_body:parse_body
+};

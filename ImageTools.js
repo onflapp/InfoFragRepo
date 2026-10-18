@@ -49,7 +49,7 @@ function make_thumbnail_img(input, done) {
   
   sharp(input)
   .autoOrient()
-  .resize({ width:512, width:512 })
+  .resize({ width:512, height:512 })
   .toBuffer()
   .then(function(buff) {
     done(buff);

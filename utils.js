@@ -16,7 +16,55 @@ function read_json(p) {
   return fs.readJsonSync(n);
 }
 
+function parse_args(options) {
+  const parseArgs = require('node:util').parseArgs;
+  try {
+    let opts = {};
+    let pos = null;
+
+    for (let k in options) {
+      let v = options[k];
+      if (v.type == 'positional') pos = k;
+      else opts[k] = v;
+    }
+
+    opts.help = { type: 'boolean', short: 'h' };
+
+    let args = parseArgs({options:opts, allowPositionals:(pos?true:false)});
+    let rv = {values:args.values};
+
+    if (args.values.help) {
+      let help = '';
+      for (let k in options) {
+        let v = options[k];
+
+        if (v.type == 'positional') help += ' <'+k+'>';
+        else help += ` -${v.short}, --${k} <value>`;
+      }
+
+      console.log('Options: ' + help);
+      process.exit(2);
+    }
+
+    if (pos) {
+      if (args.positionals && args.positionals.length) {
+        rv[pos] = args.positionals;
+      }
+      else {
+        console.log('invalid argument <'+pos+'>');
+        process.exit(1);
+      }
+    }
+    return rv;
+  }
+  catch(ex) {
+    console.log(ex.message);
+    process.exit(1);
+  }
+}
+
 module.exports = {
-  read_json:read_json,
-  resolve_path:resolve_path
+  parse_args: parse_args,
+  read_json: read_json,
+  resolve_path: resolve_path
 };

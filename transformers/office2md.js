@@ -1,4 +1,6 @@
 const path = require('path');
+const tools = require('./../TextTools');
+
 
 function transform(input, done) {
   const md = require('markitdown-node');
@@ -12,6 +14,8 @@ function transform(input, done) {
     '.ppt': 'PowerPoint Presentation'
   };
 
+  const action = 'Summarize content of the document in 3 sentences.';
+
   conv.convert(input).then(function(result) {
     if (result.status === 'success') {
       const txt = result.markdown_content;
@@ -21,7 +25,9 @@ function transform(input, done) {
       header.type = type+' Document Content';
       header.resource = escape(path.basename(input));
 
-      done({metadata:header, content:txt});
+      tools.summarize_text(action, txt, function(summary) {
+        done({metadata:header, content:txt, summary:summary});
+      });
     }
     else {
       console.log('E:'+result.status + ':' + result.errors);

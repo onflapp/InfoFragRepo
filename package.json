@@ -23,6 +23,7 @@
     "multer": "^2.4.0",
     "node-ical": "^0.27.3",
     "node-tesseract-ocr": "^2.2.1",
+    "ollama": "^0.6.4",
     "pdf-to-img": "^7.0.1",
     "remove-markdown": "^0.8.0",
     "sentence-splitter": "^5.0.1",
@@ -36,5 +37,9 @@
     "wink-nlp": "^2.4.0",
     "zod": "^4.6.7"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "^1.6.3",
+    "grunt-contrib-jshint": "^3.2.0"
+  }
 }

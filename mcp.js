@@ -36,7 +36,7 @@ Groups can be used to separate different knowledge areas (e.g. projects, custome
 Its purpose is to be personal knowledge base.
 Each fragment is either a text comment (e.g. meeting notes, to-dos).
 or a document file (e.g. emails, PDFs, screenshots, spreadsheets) with a short comment attached.
-Individual fragments are identified by unique paths.`
+Individual fragments are identified by unique paths.`;
 
     if (rv.length) {
       text += 'It contains following groups with fragment count and date of earliest/latest update:\n';
@@ -95,9 +95,9 @@ server.registerTool(
 
     if (group) filter.group = group;
     if (since) filter.start = new Date(since).getTime();
-    if (until) filter.end = new Date(end).getTime();
+    if (until) filter.end = new Date(until).getTime();
 
-    let items = await search.searchText(query, filter, { content: false});
+    let items = await search.searchText(query, filter, { content: false, summary: true });
     let text = '';
     let n = 0;
 
@@ -119,6 +119,10 @@ server.registerTool(
         for (const m of item.matches) {
           text += '- ' + m + '\n';
         }
+      }
+
+      if (item.summary) {
+        text += '\n### summary of the content:\n'+ item.summary+ '\n<!-- end of the summary -->\n';
       }
 
       if (item.comments) {
@@ -159,9 +163,9 @@ server.registerTool(
 
     if (group) filter.group = group;
     if (since) filter.start = new Date(since).getTime();
-    if (until) filter.end = new Date(end).getTime();
+    if (until) filter.end = new Date(until).getTime();
 
-    let items = await search.listAll(filter, { content: false });
+    let items = await search.listAll(filter, { content: false, summary: true });
     let text = '';
     let n = 0;
 
@@ -176,6 +180,10 @@ server.registerTool(
 
       if (item.group) {
         text += 'belongs to group: '+item.group+ '\n';
+      }
+
+      if (item.summary) {
+        text += '\n### summary of the content:\n'+ item.summary+ '\n<!-- end of the summary -->\n';
       }
 
       if (item.comments) {

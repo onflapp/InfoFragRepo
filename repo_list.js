@@ -5,19 +5,11 @@ const chrono = require('chrono-node');
 const utils = require('./utils.js');
 const config = utils.read_json('./config.json');
 
-const options = {
+const args = utils.parse_args({
   group: { type: 'string', short: 'g' },
   start: { type: 'string', short: 's' },
   end: { type: 'string', short: 'e' }
-};
-
-try {
-  args = parseArgs({options});
-}
-catch(ex) {
-  console.log(ex.message);
-  process.exit(1);
-}
+});
 
 let path = config.repositoryBase || './_repository';
 let index = new SearchIndex(path);

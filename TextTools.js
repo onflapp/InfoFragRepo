@@ -28,6 +28,55 @@ function cleanup_text(text) {
   return rv.join('\n');
 }
 
+function match_regexp(line, rlist) {
+  if (!rlist || rlist.length == 0) return false;
+
+  for (let i = 0; i < rlist.length; i++) {
+    let rx = rlist[i];
+    if (line.match(rx)) return true;
+  }
+  return false;
+}
+
+function deduplicate_text(text, accept, reject) {
+  let ntext = text.replace(/\r?\n|\r/g, '\n');
+  let lines = ntext.split('\n');
+  let min_len = 50;
+  let done_lines = {};
+  let results = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+
+    if (accept && match_regexp(line, accept)) {
+      results.push(line);
+      continue;
+    }
+
+    if (reject && match_regexp(line, reject)) {
+      continue;
+    }
+    
+    if (line.match(/^[\W_]+$/)) {
+      results.push('\n');
+      continue;
+    }
+    else if (line.length > min_len) {
+      let p = line.substr(0, min_len);
+      if (done_lines[p]) {
+        //results.push('XXX:'+line);
+        continue;
+      }
+
+      done_lines[p] = line;
+    }
+
+    results.push(line);
+  }
+
+  return results.join('\n').replace(/\n\n\n+/g, '\n\n');
+}
+
 function extract_context(text, query, max) {
   let lines = cleanup_text(text).split('\n');
   let rv = [];
@@ -98,7 +147,18 @@ function extract_context_line(text, query, max = 5) {
   return rv;
 }
 
+function summarize_text(action, text, cb) { 
+  const TextSummarizer= require('./TextSummarizer');
+  const summarizer = new TextSummarizer();
+
+  summarizer.summarizeText(action, text).then((rv) => {
+    cb(rv);
+  });
+}
+
 module.exports = {
+  summarize_text:summarize_text,
+  deduplicate_text:deduplicate_text,
   split_sentences:split_sentences,
   cleanup_text:cleanup_text,
   extract_context:extract_context

@@ -5,23 +5,16 @@ const chrono = require('chrono-node');
 const utils = require('./utils.js');
 const config = utils.read_json('./config.json');
 
-const options = {
+const args = utils.parse_args({
   group: { type: 'string', short: 'g' },
   start: { type: 'string', short: 's' },
-  end: { type: 'string', short: 'e' }
-};
-
-try {
-  args = parseArgs({options, allowPositionals:true});
-}
-catch(ex) {
-  console.log(ex.message);
-  process.exit(1);
-}
+  end: { type: 'string', short: 'e' },
+  query: { type: 'positional' }
+});
 
 let path = config.repositoryBase || './_repository';
 let index = new SearchIndex(path);
-let query = args.positionals[0];
+let query = args.query[0];
 let filter = args.values;
 
 if (filter.start) filter.start= chrono.parseDate(filter.start).getTime();

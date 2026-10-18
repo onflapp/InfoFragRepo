@@ -4,28 +4,19 @@ const Repository = require('./Repository');
 const sh = require('shelljs');
 const fs = require('fs-extra');
 const paths = require('path');
-const parseArgs = require('node:util').parseArgs;
+const utils = require('./utils.js');
+const config = utils.read_json('./config.json');
 
-const config = fs.readJsonSync('./config.json');
-
-const options = {
-  group: { type: 'string', short: 'g' }
-};
-
-try {
-  args = parseArgs({options, allowPositionals:true});
-  if (args.positionals.length == 0) throw new Error('no path');
-}
-catch(ex) {
-  console.log(ex.message);
-  process.exit(1);
-}
+const args = utils.parse_args({
+  group: { type: 'string', short: 'g' },
+  path: { type: 'positional' }
+});
 
 let path = config.repositoryBase || './_repository';
 let index = new SearchIndex(path);
 let repo = new Repository(path);
 
-let source = args.positionals[0];
+let source = args.path[0];
 let group = args.group;
 
 let list = sh.find(source).filter((file) => { return sh.test('-f', file); });

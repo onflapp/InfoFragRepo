@@ -85,6 +85,11 @@ class SearchIndex {
       let body = await frag.readContent();
       if (body) info.content = body;
     }
+    
+    if (props && props.summary) {
+      let body = await frag.readSummary();
+      if (body) info.summary = body;
+    }
       
     return info;
   }
@@ -97,6 +102,8 @@ class SearchIndex {
     const removeMd = require('remove-markdown');
 
     let frag = new Fragment(path);
+    if (!frag.isReadable()) return;
+
     let toi = await frag.mdate();
 
     let fpath = this._fileToFragmentPath(frag.fragmentPath());

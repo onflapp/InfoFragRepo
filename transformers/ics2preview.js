@@ -8,8 +8,7 @@ function transform(input, done) {
   const preview = tmp.tmpNameSync()+'.pdf';
   const thumbnail= tmp.tmpNameSync()+'.png';
 
-  mdtrans.transform(input, function(info) {
-    let md = info.content;
+  mdtrans.parse_body(input, function(header, md) {
     let rv = {};
     
     txtrans.convert_md(md, function(pbuff, tbuff) {

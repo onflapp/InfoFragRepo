@@ -70,7 +70,7 @@ class Repository {
           if (!rv.content) {
             console.log(rv);
           }
-          frag.storeContent(rv.metadata, rv.content).then(() => {
+          frag.storeContent(rv.metadata, rv.content, rv.summary).then(() => {
             done(input);
           });
         }
@@ -128,7 +128,7 @@ class Repository {
     let fdir = frag.fragmentPath();
     let ls = await fs.readdir(fdir, { withFileTypes: true });
 
-    let ignore = ['info.md', 'content.md', 'preview.png', 'preview.pdf', 'thumbnail.png'];
+    let ignore = ['info.md', 'content.md', 'summary.md', 'preview.png', 'preview.pdf', 'thumbnail.png'];
     let tfile = null;
 
     for (const item of ls) {
