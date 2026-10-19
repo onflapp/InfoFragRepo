@@ -148,8 +148,12 @@ function extract_context_line(text, query, max = 5) {
 }
 
 function summarize_text(action, text, cb) { 
-  const TextSummarizer= require('./TextSummarizer');
-  const summarizer = new TextSummarizer();
+  let summarizer = global.text_summarizer;
+  if (!summarizer) {
+    const TextSummarizer= require('./TextSummarizer');
+    summarizer = new TextSummarizer();
+    global.text_summarizer = summarizer;
+  }
 
   summarizer.summarizeText(action, text).then((rv) => {
     cb(rv);

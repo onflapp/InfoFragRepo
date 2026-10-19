@@ -98,9 +98,20 @@ function transform(input, done) {
   const action = 'Summarize the email thread in 3 sentences. Highlight main topic the thread is about. Focus on the latest status of any decision, agreement and next steps.';
 
   parse_body(input, function(headers, markdown) {
-    tools.summarize_text(action, markdown, function(summary) {
-      done({metadata:headers, content:markdown, summary:summary});
-    });
+
+    if (markdown.length < 1000) {
+      done({metadata:headers, content:markdown});
+    }
+    else if (markdown.length > 10000) {
+      tools.summarize_text(action, markdown.substr(0, 10000), function(summary) {
+        done({metadata:headers, content:markdown, summary:summary});
+      });
+    }
+    else {
+      tools.summarize_text(action, markdown, function(summary) {
+        done({metadata:headers, content:markdown, summary:summary});
+      });
+    }
   });
 }
 

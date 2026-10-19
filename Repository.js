@@ -68,8 +68,10 @@ class Repository {
       trans.transformInput(input).then((rv) => {
         if (rv) {
           if (!rv.content) {
+            console.log('no countent for '+input);
             console.log(rv);
           }
+
           frag.storeContent(rv.metadata, rv.content, rv.summary).then(() => {
             done(input);
           });

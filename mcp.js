@@ -165,7 +165,7 @@ server.registerTool(
     if (since) filter.start = new Date(since).getTime();
     if (until) filter.end = new Date(until).getTime();
 
-    let items = await search.listAll(filter, { content: false, summary: true });
+    let items = await search.listAll(filter, { content: true, summary: true });
     let text = '';
     let n = 0;
 
@@ -182,15 +182,14 @@ server.registerTool(
         text += 'belongs to group: '+item.group+ '\n';
       }
 
-      if (item.summary) {
-        text += '\n### summary of the content:\n'+ item.summary+ '\n<!-- end of the summary -->\n';
-      }
-
       if (item.comments) {
         text += '\n### comments:\n'+ item.comments + '\n<!-- end of the comment -->\n';
       }
 
-      if (item.content) {
+      if (item.summary) {
+        text += '\n### summary of the content:\n'+ item.summary+ '\n<!-- end of the summary -->\n';
+      }
+      else if (item.content && item.content.length < 1000) {
         text += '\n### full content:\n'+ item.content + '\n<!-- end of the content -->\n';
       }
 

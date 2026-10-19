@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@firecrawl/anydoc": "^0.2.4",
+    "@henrygd/queue": "^1.2.0",
     "@mdpdf/mdpdf": "^0.1.7",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@opendocsg/pdf2md": "^0.3.4",

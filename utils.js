@@ -63,7 +63,33 @@ function parse_args(options) {
   }
 }
 
+function track_stats(file) {
+  let q = global[file];
+  if (q) return;
+
+  q = {
+    _items: {},
+    start: function(item, msg) {
+      this._items[item] = item;
+    },
+    end: function(item) {
+      delete this._items[item];
+
+      let txt = [];
+      for (let k in this._items) {
+        let v = this._items[k];
+        txt.push(v);
+      }
+
+      fs.writeFileSync(file, txt.join('\n'));
+    }
+  };
+  global[file] = q;
+  return q;
+}
+
 module.exports = {
+  track_stats: track_stats,
   parse_args: parse_args,
   read_json: read_json,
   resolve_path: resolve_path

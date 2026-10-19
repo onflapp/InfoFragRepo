@@ -25,9 +25,19 @@ function transform(input, done) {
       header.type = type+' Document Content';
       header.resource = escape(path.basename(input));
 
-      tools.summarize_text(action, txt, function(summary) {
-        done({metadata:header, content:txt, summary:summary});
-      });
+      if (txt.length < 1000) {
+        done({metadata:header, content:txt});
+      }
+      else if (txt.length > 5000) {
+        tools.summarize_text(action, txt.substr(0, 5000), function(summary) {
+          done({metadata:header, content:txt, summary:summary});
+        });
+      }
+      else {
+        tools.summarize_text(action, txt, function(summary) {
+          done({metadata:header, content:txt, summary:summary});
+        });
+      }
     }
     else {
       console.log('E:'+result.status + ':' + result.errors);

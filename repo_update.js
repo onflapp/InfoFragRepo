@@ -34,9 +34,14 @@ else {
   list.push(path);
 }
 
+let q = utils.track_stats('/tmp/update.stats');
+
 list.forEach((it) => {
+  q.start(it);
   console.log(it);
+
   repo.updateFragmentContent(it).then((dir) => {
     index.indexPath(dir);    
+    q.end(it);
   });
 });
