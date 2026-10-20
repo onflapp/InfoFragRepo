@@ -61,7 +61,7 @@ server.registerTool(
     title: "Read content",
     description: "Return full content of fragment identified by unique path",
     inputSchema: {
-      path: z.string().describe("unique path of the fragment"),
+      path: z.string().describe("unique path of the fragment")
     }
   },
   async ({ path }) => {
@@ -71,6 +71,44 @@ server.registerTool(
       content: [{ 
         type: "text",
         text: (rv || '')
+      }] 
+    };
+  }
+);
+
+server.registerTool(
+  "create_fragment_content",
+  {
+    title: "Capture content in new fragment",
+    description: "Capture content and store it in new fragment. This infromation might be used to ammend or correct fragments stored in the repository.",
+    inputSchema: {
+      group: z.string().optional().describe("optional group"),
+      timestamp: z.iso.datetime().optional().describe("time stamp of the content"),
+      content: z.string().describe("text content")
+    }
+  },
+  async ({ group, timestamp, content }) => {
+    let ts = timestamp;
+    let tx = content;
+
+    if (!ts) ts = new Date().toISOString();
+    if (ts.length < 24) ts += ':00.000Z';
+   
+    let info = {
+      type: 'Captured Text Comment',
+      group: group,
+      title: '',
+      comments: tx,
+      timestamp: ts
+    };
+
+    let rv = await repo.createFragment(info);
+    search.indexPath(rv);
+
+    return {
+      content: [{ 
+        type: "text",
+        text: ''
       }] 
     };
   }

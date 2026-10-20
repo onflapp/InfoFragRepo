@@ -60,6 +60,7 @@ app.get('/api/groups', (req, res) => {
 app.post('/api/capture', upload.single('datafile'), (req, res) => { 
   let ts = req.body.modified;
   let gn = req.body.groupname;
+  let tx = req.body.textcontent.replace(/\r\n/g, '\n');
 
   if (!ts) ts = new Date().toISOString();
   if (ts.length < 24) ts += ':00.000Z';
@@ -69,7 +70,7 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
       type: 'Document File',
       group: gn,
       title: req.body.filename.replace(/\.[0-9a-z_-]+$/, ''),
-      comments: req.body.textcontent,
+      comments: tx,
       resource: escape(req.body.filename),
       timestamp: ts
     };
@@ -86,11 +87,14 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
       type: 'Text Comment',
       group: gn,
       title: req.body.filename,
-      comments: req.body.textcontent,
+      comments: tx,
       timestamp: ts
     };
 
     repo.createFragment(info).then((rv) => {
+      if (rv) {
+        search.indexPath(rv);
+      }
       console.log('done');
     });
   }
