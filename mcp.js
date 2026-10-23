@@ -9,9 +9,21 @@ const { z } = require("zod");
 const fs = require('fs-extra');
 const paths = require('path');
 const utils = require('./utils.js');
+const skills = require('./mcp_skills.js');
 
 const config = utils.read_json('./config.json');
-const server = new McpServer({ name: "information fragment repostiory", version: "0.1.0" });
+const server = new McpServer({ 
+  name: "information fragment repostiory",
+  version: "0.1.0" 
+},{
+  instructions: utils.read_text('./docs/mcp-intro.md'),
+  capabilities: {
+    resources: {}, // Requires resource support to fetch skill files
+    extensions: {
+      "io.modelcontextprotocol/skills": {}
+    }
+  }
+});
 
 const BASE = config.repositoryBase || './_repository';
 const search = new SearchIndex(BASE);
@@ -265,6 +277,8 @@ function init_remote_server(app) {
 
 function init_local_server() {
   transport = new StdioServerTransport();
+
+  skills.init_skills_handler(server);
   server.connect(transport).then(function() {
     console.error(`mcp server`);
   });

@@ -1,4 +1,5 @@
 const paths = require('node:path');
+const hash = require('node:crypto');
 const fs = require('fs-extra');
 
 function resolve_path(p) {
@@ -14,6 +15,15 @@ function resolve_path(p) {
 function read_json(p) {
   let n = resolve_path(p);
   return fs.readJsonSync(n);
+}
+
+function read_text(p) {
+  let n = resolve_path(p);
+  return fs.readFileSync(n, 'utf8');
+}
+
+function make_sha256(buf) {
+  return 'sha256:' + hash.createHash('sha256').update(buf).digest('hex');
 }
 
 function parse_args(options) {
@@ -89,8 +99,10 @@ function track_stats(file) {
 }
 
 module.exports = {
+  make_sha256: make_sha256,
   track_stats: track_stats,
   parse_args: parse_args,
   read_json: read_json,
+  read_text: read_text,
   resolve_path: resolve_path
 };
