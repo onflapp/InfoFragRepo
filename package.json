@@ -14,6 +14,7 @@
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@opendocsg/pdf2md": "^0.3.4",
     "chrono-node": "^2.10.2",
+    "electron": "^45.0.0",
     "express": "^5.2.1",
     "franc": "^6.2.0",
     "fs-extra": "^11.4.1",

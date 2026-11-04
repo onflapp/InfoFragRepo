@@ -113,7 +113,7 @@ class Fragment {
   async storeContent(info, content, summary) {
     let cpath = this._fragmentToFilePath('content.md');
     let spath = this._fragmentToFilePath('summary.md');
-    let data = matter.stringify(content, info);
+    let data = matter.stringify((content || ''), info);
 
     if (data) await fs.writeFile(cpath, data);
 

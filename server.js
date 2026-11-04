@@ -59,45 +59,48 @@ app.get('/api/groups', (req, res) => {
 
 app.post('/api/capture', upload.single('datafile'), (req, res) => { 
   let ts = req.body.modified;
-  let gn = req.body.groupname;
-  let tx = req.body.textcontent.replace(/\r\n/g, '\n');
+  let tx = req.body.textcontent || '';
+  let tc = req.body.textcomment || '';
+  let tt = req.body.type;
+  let fp = null;
+  let rr = req.body.filename;
+
+  if (tx) {
+    if (!tt) tt = 'Remote Link';
+    if (req.body.filename) rr = req.body.filename;
+  }
+  else if (req.file) {
+    rr = escape(req.body.filename);
+    fp = req.file.path;
+    if (!tt) tt = 'Document File';
+  }
+  else {
+    if (!tt) tt = 'Text Comment';
+    if (req.body.filename) rr = req.body.filename;
+  }
+
+  tc = tc.replace(/\r\n/g, '\n');
 
   if (!ts) ts = new Date().toISOString();
   if (ts.length < 24) ts += ':00.000Z';
   
-  if (req.file) {
-    let info = {
-      type: 'Document File',
-      group: gn,
-      title: req.body.filename.replace(/\.[0-9a-z_-]+$/, ''),
-      comments: tx,
-      resource: escape(req.body.filename),
-      timestamp: ts
-    };
+  let info = {
+    type: tt,
+    group: req.body.groupname,
+    title: req.body.title,
+    filename: req.body.filename,
+    comments: tc,
+    content: tx,
+    resource: rr,
+    timestamp: ts
+  };
 
-    repo.createFragment(info, req.file.path).then((rv) => {
-      if (rv) {
-        search.indexPath(rv);
-      }
-      console.log('done');
-    });
-  }
-  else {
-    let info = {
-      type: 'Text Comment',
-      group: gn,
-      title: req.body.filename,
-      comments: tx,
-      timestamp: ts
-    };
-
-    repo.createFragment(info).then((rv) => {
-      if (rv) {
-        search.indexPath(rv);
-      }
-      console.log('done');
-    });
-  }
+  repo.createFragment(info, fp).then((rv) => {
+    if (rv) {
+      search.indexPath(rv);
+    }
+    console.log('done');
+  });
 
   res.redirect('/webapp/capture.html');
 });

@@ -33,6 +33,55 @@ class Repository {
     }
   }
 
+  async _make_summary(txt) {
+    return new Promise((done) => {
+      const action = 'Summarize content of the document in 3 sentences.';
+      const tools = require('./TextTools');
+
+      if (txt.length < 1000) {
+        done(txt);
+      }
+      else if (txt.length > 5000) {
+        tools.summarize_text(action, txt.substr(0, 5000), function(summary) {
+          done(summary);
+        });
+      }
+      else {
+        tools.summarize_text(action, txt, function(summary) {
+          done(summary);
+        });
+      }
+
+    });
+  }
+
+  async _make_thumbnail(input) {
+    let ext = paths.extname(input);
+    let dir = paths.dirname(input);
+    let thumbnail = paths.join(dir, 'thumbnail.png');
+
+    if (ext == '.pdf') {
+      return new Promise((done) => {
+        const itools =require('./ImageTools');
+        itools.make_thumbnail_pdf(input, function(buff) {
+          fs.writeFile(thumbnail, buff, function() {
+            done();
+          });
+        });
+      });
+    }
+    else {
+      return new Promise((done) => {
+        const itools =require('./ImageTools');
+        itools.make_thumbnail_img(input, function(buff) {
+          fs.writeFile(thumbnail, buff, function() {
+            done();
+          });
+        });
+      });
+    }
+  }
+
   async _generate(frag, input) {
     const trans = new Transformer(this.previewRegistry);
 
@@ -68,7 +117,7 @@ class Repository {
       trans.transformInput(input).then((rv) => {
         if (rv) {
           if (!rv.content) {
-            console.log('no countent for '+input);
+            console.log('no content for '+input);
             console.log(rv);
           }
 
@@ -171,21 +220,41 @@ class Repository {
   async createFragment(info, file) {
     let dir = paths.join(this.filePath, this._makeName(info.group));
     let title = info.title;
+    let name = info.filename;
+
+    if (!name) name = title || 'untitled';
+    name = name.replace(/\.[0-9a-z_-]+$/, '');
 
     await fs.ensureDir(dir);
     let frag = new Fragment(dir);
 
     await frag.writeInformation(info);
 
-    if (file) {
+    if (info.content) {                            // file with content
+      if (file) {
+        let ext = paths.extname(file);
+        let pfile = paths.join(dir, 'preview'+ext);
+
+        await fs.move(file, pfile);
+
+        await this._make_thumbnail(pfile);
+      }
+      let metadata = {};
+      let summary = await this._make_summary(info.content);
+
+      await frag.storeContent(metadata, info.content, summary);
+
+    }
+    else if (file) {                               // regular file
       let ext = paths.extname(file);
-      let tfile = paths.join(dir, title+ext);
+      let tfile = paths.join(dir, name+ext);
 
       await fs.move(file, tfile);
+
       await this._transform(frag, tfile);
       await this._generate(frag, tfile);
     }
-    else if (info.comments) {
+    else if (info.comments) {                      // just a comment
       let ifile = paths.join(dir, 'info.md');
       await this._generate(frag, ifile);
     }

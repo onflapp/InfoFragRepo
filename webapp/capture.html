@@ -24,7 +24,7 @@
 
   <div>
     <form action="/api/capture" method="post" enctype="multipart/form-data">
-      <h1>Capture</h1>
+      <h1>Capture File</h1>
       Group: <input name="groupname" type="text"></input>
       
       <div class="ui_drop-zone">
@@ -35,13 +35,57 @@
 
       <h3>Comments</h3>
       <div class="ui_drop-zone">
-        <textarea id="sec_comments" name="textcontent" class="full-width"></textarea>
+        <textarea id="sec_comments" name="textcomment" class="full-width"></textarea>
+      </div>
+
+      <input type="submit"></input>
+    </form>
+  </div>
+
+  <hr/>
+
+  <div>
+    <form action="/api/capture" method="post" enctype="multipart/form-data">
+      <h1>Capture Comment</h1>
+      Group: <input name="groupname" type="text"></input>
+      
+      <h3>Comments</h3>
+      <div class="ui_drop-zone">
+        <textarea id="sec_comments" name="textcomment" class="full-width"></textarea>
       </div>
 
       <button id="act_paste">Clipboard</button>
       <input type="submit"></input>
     </form>
+
   </div>
+
+  <hr/>
+
+  <div>
+    <form action="/api/capture" method="post" enctype="multipart/form-data">
+      <h1>Capture Link</h1>
+      Group: <input name="groupname" type="text"></input>
+      
+      <h3>preview</h3>
+      <div class="ui_drop-zone">
+        <input name="modified" type="datetime-local">
+        <span class="ui_button-upload">Select File...<input name="datafile" type="file"></input></span>
+      </div>
+
+      <h3>Title</h3>
+      <input name="title" type="text"></input>
+      <h3>URL</h3>
+      <input name="filename" type="text"></input>
+      <h3>Comments</h3>
+      <textarea id="sec_comments" name="textcomment" class="full-width"></textarea>
+      <h3>Content</h3>
+      <textarea id="sec_content" name="textcontent" class="full-width"></textarea>
+
+      <input type="submit"></input>
+    </form>
+  </div>
+
 
 </body>
 </html>

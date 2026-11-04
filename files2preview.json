@@ -2,6 +2,7 @@
   "application/pdf":"pdf2preview",
   "image/png":"img2preview",
   "image/jpeg":"img2preview",
+  "image/webp":"img2preview",
   "text/html":"html2preview",
   "text/calendar":"ics2preview",
   "text/plain":"text2preview",
