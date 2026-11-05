@@ -33,6 +33,9 @@
         <span class="ui_button-upload">Select File...<input name="datafile" type="file"></input></span>
       </div>
 
+      <h3>Title</h3>
+      <input name="title" type="text"></input>
+
       <h3>Comments</h3>
       <div class="ui_drop-zone">
         <textarea id="sec_comments" name="textcomment" class="full-width"></textarea>
@@ -48,7 +51,10 @@
     <form action="/api/capture" method="post" enctype="multipart/form-data">
       <h1>Capture Comment</h1>
       Group: <input name="groupname" type="text"></input>
-      
+
+      <h3>Title</h3>
+      <input name="title" type="text"></input>
+     
       <h3>Comments</h3>
       <div class="ui_drop-zone">
         <textarea id="sec_comments" name="textcomment" class="full-width"></textarea>
