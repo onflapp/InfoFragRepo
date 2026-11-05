@@ -47,6 +47,7 @@ Content-Type: multipart/form-data
 - filename
 - groupname
 - type        - optional type (e.g. Document File or Text Comment)
+- title       - optional title
 - textcomment - comments associated with this document
 - textcontent - optional textual content of this document (if not present, it will be generated from the datafile)
 - modified

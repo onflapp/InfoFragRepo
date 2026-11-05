@@ -230,7 +230,7 @@ class Repository {
 
     await frag.writeInformation(info);
 
-    if (info.content) {                            // file with content
+    if (info.content) {                            // remote link with content + preview
       if (file) {
         let ext = paths.extname(file);
         let pfile = paths.join(dir, 'preview'+ext);

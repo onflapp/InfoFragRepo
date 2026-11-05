@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs-extra');
 const paths = require('path');
 const multer  = require('multer');
@@ -15,6 +16,8 @@ const BASE = utils.resolve_path(config.repositoryBase || './_repository');
 const app = express();
 const search = new SearchIndex(BASE);
 const repo = new Repository(BASE);
+
+app.use(cors());
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -68,6 +71,7 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
   if (tx) {
     if (!tt) tt = 'Remote Link';
     if (req.body.filename) rr = req.body.filename;
+    fp = req.file.path;
   }
   else if (req.file) {
     rr = escape(req.body.filename);
@@ -80,6 +84,7 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
   }
 
   tc = tc.replace(/\r\n/g, '\n');
+  tx = tx.replace(/\r\n/g, '\n');
 
   if (!ts) ts = new Date().toISOString();
   if (ts.length < 24) ts += ':00.000Z';
