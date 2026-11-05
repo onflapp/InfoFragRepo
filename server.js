@@ -66,21 +66,21 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
   let tc = req.body.textcomment || '';
   let tt = req.body.type;
   let fp = null;
-  let rr = req.body.filename;
+  let rr = null;
 
-  if (tx) {
+  if (req.body.resource) {
     if (!tt) tt = 'Remote Link';
-    if (req.body.filename) rr = req.body.filename;
-    fp = req.file.path;
+    rr = req.body.resource;
+    if (req.file) fp = req.file.path;
+    if (!tc && !tx) tc = 'link to '+rr; 
   }
   else if (req.file) {
-    rr = escape(req.body.filename);
+    rr = escape(req.body.filename || 'untitled');
     fp = req.file.path;
     if (!tt) tt = 'Document File';
   }
   else {
     if (!tt) tt = 'Text Comment';
-    if (req.body.filename) rr = req.body.filename;
   }
 
   tc = tc.replace(/\r\n/g, '\n');
@@ -100,12 +100,17 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
     timestamp: ts
   };
 
-  repo.createFragment(info, fp).then((rv) => {
-    if (rv) {
-      search.indexPath(rv);
-    }
-    console.log('done');
-  });
+  if (fp || tx || tc)  {
+    repo.createFragment(info, fp).then((rv) => {
+      if (rv) {
+        search.indexPath(rv);
+      }
+      console.log('done');
+    });
+  }
+  else {
+    console.log('empty record');
+  }
 
   res.redirect('/webapp/capture.html');
 });

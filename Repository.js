@@ -220,10 +220,6 @@ class Repository {
   async createFragment(info, file) {
     let dir = paths.join(this.filePath, this._makeName(info.group));
     let title = info.title;
-    let name = info.filename;
-
-    if (!name) name = title || 'untitled';
-    name = name.replace(/\.[0-9a-z_-]+$/, '');
 
     await fs.ensureDir(dir);
     let frag = new Fragment(dir);
@@ -246,6 +242,9 @@ class Repository {
 
     }
     else if (file) {                               // regular file
+      let name = info.filename || paths.basename(file);
+      name = name.replace(/\.[0-9a-z_-]+$/, '');
+
       let ext = paths.extname(file);
       let tfile = paths.join(dir, name+ext);
 

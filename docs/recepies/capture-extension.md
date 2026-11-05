@@ -7,7 +7,7 @@ create browser extension that will do the following:
 the end point expects the following parameters:
 - Content-Type: multipart/form-data
 - datafile: file type containing the screenshot
-- filename: url of the website
+- resource: url of the website
 - title: title of the website
 - type: set to "Remote Website Link"
 - textcontent: extracted content of the website as markdown

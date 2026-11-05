@@ -46,6 +46,7 @@ Content-Type: multipart/form-data
 - datafile
 - filename
 - groupname
+- resource    - remote resource (e.g. URL)
 - type        - optional type (e.g. Document File or Text Comment)
 - title       - optional title
 - textcomment - comments associated with this document
@@ -72,14 +73,14 @@ curl -X POST http://localhost:3000/api/capture \
 
 ### example link or remote site with preview
 
-textcontent must be filled. 
+textcontent can contain textual representation of the content
 datafile can contain preview of this content in pdf or png format.
-filename can contain URL to remote resource
+resource must contain URL to remote resource
 
 ```
 curl -X POST http://localhost:3000/api/capture \
-  -F "datafile=@./preview.pdf" \
-  -F "filename=http://www.xyz.com" \
+  -F "datafile=@./screenshot.pdf" \
+  -F "resource=http://www.xyz.com" \
   -F "groupname=research" \
   -F "title=Meeting notes" \
   -F "textcontent=Actual content of the site" \
