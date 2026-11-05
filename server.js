@@ -72,7 +72,11 @@ app.post('/api/capture', upload.single('datafile'), (req, res) => {
     if (!tt) tt = 'Remote Link';
     rr = req.body.resource;
     if (req.file) fp = req.file.path;
-    if (!tc && !tx) tc = 'link to '+rr; 
+    if (!tc && !tx) {
+      let title = req.body.title;
+      if (!title) title = rr.substr(0, 10);
+      tc = 'link to ['+title+']('+rr+')'; 
+    }
   }
   else if (req.file) {
     rr = escape(req.body.filename || 'untitled');
@@ -132,4 +136,5 @@ app.get('/webapp*filepath', (req, res) => {
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
+
 
