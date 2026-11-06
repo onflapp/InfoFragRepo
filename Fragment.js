@@ -85,6 +85,20 @@ class Fragment {
     }
   }
 
+  async readThumbnail() {
+    try {
+      let cpath = this._fragmentToFilePath('thumbnail.png');
+      let data = await fs.readFile(cpath);
+
+      console.log(cpath);
+      return data;
+    }
+    catch(ex) {
+      return null;
+    }
+  }
+
+
   async readSummary() {
     try {
       let spath = this._fragmentToFilePath('summary.md');

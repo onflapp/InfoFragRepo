@@ -172,6 +172,18 @@ class Repository {
     }
   }
 
+  async readFragmentThumbnailAtPath(fpath) {
+    let fdir = this._fragmentToFilePath(fpath);
+    let frag = new Fragment(fdir);
+
+    if (frag.isReadable()) {
+      return await frag.readThumbnail();
+    }
+    else {
+      return null;
+    }
+  }
+
   async updateFragmentContent(path) {
     let frag = new Fragment(path);
     if (!frag.isReadable()) return;

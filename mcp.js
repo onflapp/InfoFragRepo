@@ -71,19 +71,43 @@ server.registerTool(
   "read_fragment_content",
   {
     title: "Read content",
-    description: "Return full content of fragment identified by unique path",
+    description: "Return full content of fragment identified by unique path and it's thumbnail representation",
     inputSchema: {
       path: z.string().describe("unique path of the fragment")
     }
   },
   async ({ path }) => {
-    let rv = await repo.readFragmentContentAtPath(path);
+    const sharp = require('sharp');
+
+    let text = await repo.readFragmentContentAtPath(path);
+    let buff = await repo.readFragmentThumbnailAtPath(path);
+    let data = null;
+
+    if (buff) {
+      buff = await sharp(buff)
+        .autoOrient()
+        .resize({ width:64, height:64 })
+        .toBuffer();
+
+      data = buff.toString('base64');
+    }
+
+    let content = [];
+    content.push({
+      type: "text",
+      text: (text || '')
+    });
+
+    if (data) {
+      content.push({
+        type: "image",
+        data: data,
+        mimeType: 'image/png'
+      });
+    }
 
     return {
-      content: [{ 
-        type: "text",
-        text: (rv || '')
-      }] 
+      content:content
     };
   }
 );
