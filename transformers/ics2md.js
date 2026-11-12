@@ -1,3 +1,47 @@
+const tools = require('./../TextTools');
+
+const reject = [
+  /^\*\*Microsoft\ Teams meeting\*\*/,
+  /^Meeting\ ID:/,
+  /^Passcode:/,
+  /^Tenant\ key:/,
+  /^\*\*Dial\ in\ by\ phone\*\*/,
+  /^Phone\ conference\ ID:/,
+  /^\*\*Join\ on\ a\ video\ conferencing\ device\*\*/,
+  /^Video\ ID:/,
+  /^NOTE:\ This\ meeting\ could\ be\ recorded,/,
+  /^\[Need\ help\?\]/,
+  /^\[Find\ a\ local\ number\]/,
+  /^\[More\ info\]/,
+  /^Thanks,/,
+  /^Thanks a lot,/,
+  /^Many thanks,/,
+  /^Thank\ you,/,
+  /^Microsoft Teams meeting/,
+  /^Dial in/,
+  /^Join on a video/,
+  /\{.*margin.*\}/,
+  /.*bookwithme.*/,
+  /.*meetingOptions.*/,
+  /.*dialin.teams.cloud.microsoft.*/,
+  /.*Privacy and security.*/,
+  /.*www.webex.com.*/,
+  /.*may contain confidential and privileged information.*/,
+  /.*JoinTeamsMeeting.*/,
+  /.*https:\/\/teams.microsoft.com\/meet.*/
+];
+
+const accept = [];
+
+function cleanup_text(text) {
+  let r = text;
+  r = r.replace(/<!--.*-->/, '');
+  r = r.replace(/@media.*\{.*\}/, '');
+  r = tools.deduplicate_text(r, accept, reject);
+
+  return r;
+}
+
 function parse_body(input, done) {
   const ical = require('node-ical');
   const path = require('path');
@@ -26,9 +70,9 @@ function parse_body(input, done) {
             let startTime = ev.start ? new Date(ev.start).toISOString() : null;
 
             markdown                += '## ' + title + '\n\n';
-            if (startDate) markdown += '**Start Date:** ' + startDate + '\n';
-            if (startTime) markdown += '**Start Time:** ' + startTime + '\n';
-            if (location) markdown  += '**Location:** ' + location + '\n';
+            if (startDate) markdown += '**Start Date:** ' + startDate + '  \n';
+            if (startTime) markdown += '**Start Time:** ' + startTime + '  \n';
+            if (location) markdown  += '**Location:** ' + location + '  \n';
 
             if (organizer) {
               markdown += '**Organizer:** '
@@ -38,7 +82,7 @@ function parse_body(input, done) {
               markdown += name;
               if (email) markdown += ' ['+email.replace(/^mailto:/,'')+']('+email+')\n';
 
-              markdown += '\n';
+              markdown += '  \n';
             }
 
             if (attendee) {
@@ -55,7 +99,7 @@ function parse_body(input, done) {
 
             if (description) {
               markdown += '\n### Description of the event\n\n';
-              markdown += description;
+              markdown += cleanup_text(description);
             }
 
             markdown += '\n---\n';

@@ -98,6 +98,23 @@ function init_skills_handler(mcp) {
     );
   });
 
+  mcp.registerTool(
+    "describe_api",
+    {
+      title: "Describe REST API end-points",
+      description: "Describe REST API end-points that external applications can use to access and modify information in the repository",
+      inputSchema: {}
+    },
+    async () => {
+      return {
+        content:[{
+          type: 'text',
+          text: utils.read_text('./docs/API.md')
+        }]
+      };
+    }
+  );
+
   /*
   mcp.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const { uri } = request.params || {};

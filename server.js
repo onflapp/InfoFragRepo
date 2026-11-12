@@ -133,6 +133,13 @@ app.get('/webapp*filepath', (req, res) => {
   res.sendFile(paths.join(__dirname, '/webapp/'+name));
 });
 
+app.get('/ui*filepath', (req, res) => {
+  let name = req.params.filepath.join('/');
+
+  res.sendFile(paths.join(__dirname, '/ui/'+name));
+});
+
+
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });

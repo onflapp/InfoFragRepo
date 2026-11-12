@@ -202,8 +202,8 @@ class Repository {
     }
 
     if (tfile) {
-      await this._transform(frag, tfile);
       await this._generate(frag, tfile);
+      await this._transform(frag, tfile);
     }
     else {
       let ifile = paths.join(fdir, 'info.md');

@@ -22,7 +22,15 @@ const reject = [
   /^\[More\ info\]/,
   /^Thanks,/,
   /^Thanks a lot,/,
-  /^Thank\ you,/
+  /^Thank\ you,/,
+  /^Microsoft Teams meeting/,
+  /^Join on a video/,
+  /\{.*margin.*\}/,
+  /.*\(.*bookwithme.*\).*/,
+  /.*\(.*meetingOptions.*\).*/,
+  /.*Privacy and security.*/,
+  /.*may contain confidential and privileged information.*/,
+  /.*https:\/\/teams.microsoft.com\/meet.*/
 ];
 
 const accept = [

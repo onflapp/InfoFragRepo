@@ -10,6 +10,7 @@ const fs = require('fs-extra');
 const paths = require('path');
 const utils = require('./utils.js');
 const skills = require('./mcp_skills.js');
+const ui = require('./mcp_ui.js');
 
 const config = utils.read_json('./config.json');
 const server = new McpServer({ 
@@ -71,7 +72,7 @@ server.registerTool(
   "read_fragment_content",
   {
     title: "Read content",
-    description: "Return full content of fragment identified by unique path and it's thumbnail representation",
+    description: "Return full content of fragment identified by unique path",
     inputSchema: {
       path: z.string().describe("unique path of the fragment")
     }
@@ -80,8 +81,10 @@ server.registerTool(
     const sharp = require('sharp');
 
     let text = await repo.readFragmentContentAtPath(path);
-    let buff = await repo.readFragmentThumbnailAtPath(path);
     let data = null;
+
+    /*
+    let buff = await repo.readFragmentThumbnailAtPath(path);
 
     if (buff) {
       buff = await sharp(buff)
@@ -91,6 +94,7 @@ server.registerTool(
 
       data = buff.toString('base64');
     }
+    */
 
     let content = [];
     content.push({
@@ -230,7 +234,7 @@ server.registerTool(
       since: z.iso.datetime().optional().describe("from specific time and date"),
       until: z.iso.datetime().optional().describe("up to specific time and date"),
       limit: z.number().int().min(1).max(1000).default(10).describe("max fragments to return"),
-    },
+    }
   },
   async ({ group, since, until, limit }) => {
     let filter = {};
@@ -279,6 +283,34 @@ server.registerTool(
   }
 );
 
+server.registerTool(
+  "publish_webapp",
+  {
+    title: "Publish custom web application",
+    description: "Publish custom web application that will access the repository using REST API (e.g. custom dashboard, todo list)",
+    inputSchema: {
+      name: z.string().describe("name of the webapp"),
+      content: z.string().describe("HTML content of the webapp")
+    }
+  },
+  async ({ name, content }) => {
+    let tx = content;
+    let file = name + '.html';
+    let dir = paths.join(__dirname, '/webapp/my');
+
+    await fs.ensureDir(dir);
+    await fs.writeFile(dir+'/'+file, content);
+
+    return {
+      content: [{ 
+        type: "text",
+        text: '['+name+'](http://localhost:3000/webapp/my/'+file+')'
+      }] 
+    };
+  }
+);
+
+
 let transport = null;
 
 function init_remote_server(app) {
@@ -303,6 +335,8 @@ function init_local_server() {
   transport = new StdioServerTransport();
 
   skills.init_skills_handler(server);
+  ui.init_ui_handler(server);
+
   server.connect(transport).then(function() {
     console.error(`mcp server`);
   });

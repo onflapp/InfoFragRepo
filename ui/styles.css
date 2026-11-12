@@ -1,0 +1,14 @@
+body { 
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 16px;
+}
+
+.thumbnail {
+  display: inline-block;
+  width: 128px;
+  height: 128px;
+  overflow: hidden;
+  border: 2px solid gray;
+  margin: 2px;
+}

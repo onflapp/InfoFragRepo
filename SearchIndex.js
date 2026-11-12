@@ -23,6 +23,23 @@ class SearchIndex {
     return paths.join(this.filePath, path);
   }
 
+  _escape_sql(sql) {
+    const sql_esc = require('sqlstring-sqlite').escape;
+    return sql_esc(sql);
+  }
+
+  _escape_match(sql) {
+    let r = [];
+    let w = sql.split(/\s+/);
+    
+		for (let i = 0; i < w.length; i++) {
+			let item = w[i];
+      r.push('"'+item+'"');
+		}
+
+    return r.join(' ');
+  }
+
   _prepare() {
     let sql = '';
     sql += 'CREATE VIRTUAL TABLE IF NOT EXISTS TextIndex USING fts5(toi UNINDEXED, path UNINDEXED, timestamp UNINDEXED, bucket, body)';
@@ -163,6 +180,8 @@ class SearchIndex {
   }
 
   async searchText(query, filter, props) {
+    let self = this;
+
     return new Promise((done, error) => {
       let results = [];
       let rv = [];
@@ -170,20 +189,18 @@ class SearchIndex {
       if (filter && Object.keys(filter).length > 0) {
         if (filter.group && !filter.start && !filter.end) {
           if (query) {
-            rv = this.querySQL2.all(filter.group, query);
+            rv = this.querySQL2.all(filter.group, self._escape_match(query));
           }
           else {
             rv = this.allSQL2.all(filter.group);
           }
         }
         else {
-          const sql_esc = require('sqlstring-sqlite').escape;
-
           let sql = [];
-          if (filter.group) sql.push('bucket = '+sql_esc(filter.group));
+          if (filter.group) sql.push('bucket = '+self._escape_sql(filter.group));
           if (filter.start) sql.push('timestamp >= '+filter.start);
           if (filter.end)   sql.push('timestamp <= '+filter.end);
-          if (query)        sql.push('body MATCH '+sql_esc(query));
+          if (query)        sql.push('body MATCH \''+self._escape_match(query)+'\'');
 
           let sv = 'SELECT path, timestamp FROM TextIndex WHERE ' + sql.join(' AND ') + ' ORDER BY timestamp DESC';
           console.log(sv);
@@ -192,7 +209,7 @@ class SearchIndex {
         }
       }
       else if (query) {
-        rv = this.querySQL.all(query);
+        rv = this.querySQL.all(self._escape_match(query));
       }
       else {
         rv = this.allSQL.all();
