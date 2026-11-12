@@ -26,8 +26,16 @@ const reject = [
   /.*dialin.teams.cloud.microsoft.*/,
   /.*Privacy and security.*/,
   /.*www.webex.com.*/,
+  /.*meet.google.com.*/,
+  /.*support.google.com.*/,
+  /.*tel\.meet.*/,
+  /.*calendar.google.com.*/,
   /.*may contain confidential and privileged information.*/,
   /.*JoinTeamsMeeting.*/,
+  /^Join with Google Meet/,
+  /^Join by phone/,
+  /^Join using SIP/,
+  /\<sip:/,
   /.*https:\/\/teams.microsoft.com\/meet.*/
 ];
 

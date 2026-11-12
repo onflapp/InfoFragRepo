@@ -26,6 +26,7 @@ const reject = [
   /^Microsoft Teams meeting/,
   /^Join on a video/,
   /\{.*margin.*\}/,
+  /\{.*font-family.*\}/,
   /.*\(.*bookwithme.*\).*/,
   /.*\(.*meetingOptions.*\).*/,
   /.*Privacy and security.*/,
