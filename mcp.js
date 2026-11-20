@@ -175,7 +175,7 @@ server.registerTool(
     if (since) filter.start = new Date(since).getTime();
     if (until) filter.end = new Date(until).getTime();
 
-    let items = await search.searchText(query, filter, { content: false, summary: true });
+    let items = await search.searchText(query, filter, { content: false, summary: false });
     let text = '';
     let n = 0;
 
@@ -183,13 +183,13 @@ server.registerTool(
       if (limit && n >= limit) break;
       n++;
 
-      text += '\n<-! start of the fragment with path '+item.path+' -->\n';
-      text += '\n# fragment: ' +item.title + '\n';
-      text += item.type + '\n';
-      text += 'last update: ' + item.timestamp.toISOString()+ '\n';
+      text += '\n<!-- start of the fragment with path '+item.path+' -->\n';
+      text += '\n# fragment title: ' +item.title + '\n';
+      text += item.type + '  \n';
+      text += 'last update: ' + item.timestamp.toISOString()+ '  \n';
 
       if (item.group) {
-        text += 'belongs to group: '+item.group+ '\n';
+        text += 'belongs to group: '+item.group+ '  \n';
       }
 
       if (item.matches && item.matches.length > 0) {
@@ -211,7 +211,7 @@ server.registerTool(
         text += '\n### full content:\n'+ item.content + '\n<!-- end of the content -->\n';
       }
 
-      text += '\n<!-- end of the fragment with path '+item.path+'-->\n';
+      text += '\n<!-- end of the fragment with path '+item.path+' -->\n';
     }
     
     return {
